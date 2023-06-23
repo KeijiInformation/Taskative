@@ -1,0 +1,14 @@
+@charset "utf-8";
+@use "../../Functions/Media.scss";
+
+
+
+.button-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 80px;
+    @include Media.mobile() {
+        flex-direction: row;
+        gap: 50px;
+    }
+}

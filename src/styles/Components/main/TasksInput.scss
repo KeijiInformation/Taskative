@@ -1,0 +1,18 @@
+@charset "utf-8";
+
+
+
+.tasks-input-wrapper {
+    &__checkbox-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        user-select: none;
+        &--task-checkbox {
+            .input-label {
+                display: flex;
+                gap: 32px;
+            }
+        }
+    }
+}

@@ -1,0 +1,17 @@
+@charset "utf-8";
+@use "../../Variables/Color.scss";
+
+
+
+.time-input-wrapper {
+    width: 100%;
+    position: relative;
+
+    &__input {
+        width: 100%;
+        position: relative;
+        color: Color.$font-black;
+        text-align: center;
+        font-weight: bold;
+    }
+}

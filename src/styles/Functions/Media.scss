@@ -1,0 +1,15 @@
+@charset "utf-8";
+@use "../Variables/Breakpoints.scss";
+
+
+@mixin tablet() {
+    @media screen and (max-width: Breakpoints.$tablet-max) {
+        @content;
+    }
+}
+
+@mixin mobile() {
+    @media screen and (max-width: Breakpoints.$mobile-max) {
+        @content;
+    }
+}

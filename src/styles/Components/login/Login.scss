@@ -1,0 +1,27 @@
+@charset "utf-8";
+@use "../../Functions/Size.scss";
+@use "../../Variables/Color.scss";
+
+
+
+.login-page-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &__first-view-message {
+        font-size: Size.fontSize(24);
+        font-weight: bold;
+        margin-bottom: 64px;
+    }
+    &__operation-message {
+        font-size: Size.fontSize(16);
+        margin-top: 64px;
+    }
+    &__annotate-message {
+        color: Color.$font-red;
+        font-size: Size.fontSize(10);
+        margin-top: 16px;
+    }
+}

@@ -1,0 +1,119 @@
+@charset "utf-8";
+@use "../../Variables/Color.scss";
+@use "../../Functions/Size.scss";
+
+
+
+.tasks-view-wrapper {
+    margin-top: 24px;
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 56px;
+
+    &__oparate-btns-box {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        width: 80%;
+        position: relative;
+        &::after {
+            content: "";
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            border-bottom: solid 1px Color.$font-white;
+        }
+    }
+
+    &__tasks-list {
+        display: flex;
+        flex-direction: column;
+        gap: 48px;
+        &--task {
+            display: flex;
+            align-items: center;
+            position: relative;
+            gap: 16px;
+            &::after {
+                position: absolute;
+                top: calc(100% + 16px);
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(100% + 10px);
+                border-bottom: 1px solid Color.$font-white;
+                content: "";
+            }
+
+            .change-order-btns-box {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 10%;
+                max-width: 40px;
+                transition: all .1s ease-in-out;
+                &.false {
+                    opacity: 0;
+                    visibility: hidden;
+                }
+                &.true {
+                    opacity: 1;
+                    visibility: visible;
+                }
+            }
+
+            .task-info-box {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+                width: 100%;
+                max-width: 350px;
+                &__title-box {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    &--required-icon {
+                        width: 20px;
+                        height: 20px;
+                        line-height: 18px;
+                        text-align: center;
+                        font-size: Size.fontSize(13);
+                        color: Color.$font-red;
+                        border: 1px solid Color.$font-red;
+                        border-radius: 2px;
+                    }
+                }
+                &__time-box {
+                    display: flex;
+                    > div {
+                        display: flex;
+                        p:nth-child(2) {
+                            color: Color.$font-red;
+                        }
+                    }
+                }
+            }
+
+            .edit-btn-box {
+                width: 10%;
+                max-width: 40px;
+                display: flex;
+                justify-content: center;
+                transition: all .1s ease-in-out;
+                &.false {
+                    opacity: 0;
+                    visibility: hidden;
+                }
+                &.true {
+                    opacity: 1;
+                    visibility: visible;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,18 @@
+@charset "utf-8";
+@use "../../Variables/Color.scss";
+
+
+
+.add-btn-wrapper {
+    user-select: none;
+    position: relative;
+    label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__text {
+        
+    }
+}

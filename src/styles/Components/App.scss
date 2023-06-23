@@ -1,0 +1,193 @@
+@charset "utf-8";
+@use "../Variables/Color.scss" as color;
+@use "../Variables/ElemSize.scss";
+@use "../Functions/Size.scss";
+@use "../Functions/Media.scss";
+
+
+
+///////////////////////////////////////////////////////////////////////
+// base color, layout and visibility
+///////////////////////////////////////////////////////////////////////
+body {
+    background-color: color.$bg-black;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.error-message {
+    color: color.$font-red;
+    font-size: Size.fontSize(12);
+}
+
+.left-side-wrapper, .right-side-wrapper, .bottom-side-wrapper {
+    background-color: color.$bg-blue;
+    position: relative;
+}
+
+.left-side-wrapper, .right-side-wrapper {
+    display: flex;
+}
+
+.bottom-side-wrapper {
+    display: none;
+}
+
+@include Media.mobile() {
+    .left-side-wrapper, .right-side-wrapper {
+        display: none;
+    }
+
+    .bottom-side-wrapper {
+        display: flex;
+    }
+}
+
+#root {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    @include Media.mobile() {
+        flex-direction: column;
+        padding: 0 24px;
+    }
+    .left-side-wrapper, .right-side-wrapper {
+        width: ElemSize.$sideBar;
+        height: 100%;
+        position: fixed;
+    }
+    .left-side-wrapper {
+        left: 0;
+    }
+    .right-side-wrapper {
+        right: 0;
+    }
+    .content-wrapper {
+        width: calc(100% - 2 * ElemSize.$sideBar);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        @include Media.mobile() {
+            width: 100%;
+            &::after {
+                content: "";
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                height: calc(ElemSize.$bottomBar);
+            }
+        }
+    }
+}
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////
+// left side
+///////////////////////////////////////////////////////////////////////
+.left-side-wrapper {
+    align-items: center;
+    justify-content: center;
+}
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////
+// content
+///////////////////////////////////////////////////////////////////////
+.content-wrapper {
+    padding: 16px;
+
+    > div {
+        &.enter {
+            opacity: 0;
+            position: absolute;
+            transform: translateX(50px);
+        }
+        &.enter-active {
+            transition: all .3s .3s ease-in-out;
+            opacity: 1;
+            position: absolute;
+            transform: translateX(0);
+        }
+        &.enter-done {
+            opacity: 1;
+            position: relative;
+            transform: none;
+        }
+        &.exit {
+            opacity: 1;
+            position: absolute;
+            transform: translateX(0);
+        }
+        &.exit-active {
+            transition: all .3s ease-in-out;
+            opacity: 0;
+            position: absolute;
+            transform: translateX(-50px);
+        }
+        &.exit-done {
+            opacity: 0;
+            position: absolute;
+            transform: translateX(-50px);
+        }
+    }
+}
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////
+// right side
+///////////////////////////////////////////////////////////////////////
+.right-side-wrapper {
+    align-items: center;
+    justify-content: center;
+}
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////
+// bottom side
+///////////////////////////////////////////////////////////////////////
+.bottom-side-wrapper {
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    width: 100%;
+    height: ElemSize.$bottomBar;
+    padding: 20px 10px;
+    bottom: 0;
+    left: 0;
+}
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////

@@ -1,0 +1,7 @@
+@charset "utf-8";
+
+
+
+@function fontSize($size) {
+    @return calc($size * 1rem / 16);
+}

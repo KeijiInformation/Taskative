@@ -1,0 +1,10 @@
+export { default as MovePageBtn } from "./MovePageBtn";
+export { default as ButtonList  } from "./ButtonList";
+export { default as NormalBtn   } from "./NormalBtn";
+export { default as AddBtn      } from "./AddBtn";
+export { default as DeleteBtn   } from "./DeleteBtn";
+export { default as IconBtn     } from "./IconBtn";
+export { default as TasksView   } from "./TasksView";
+export { default as Popup       } from "./Popup";
+export { default as InputForm   } from "./InputForm";
+export { default as TaskPop     } from "./TaskPop";

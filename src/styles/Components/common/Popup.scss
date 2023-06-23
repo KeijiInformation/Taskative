@@ -1,0 +1,181 @@
+@charset "utf-8";
+@use "../../Variables/Color.scss";
+@use "../../Variables/ElemSize.scss";
+@use "../../Functions/Media.scss";
+
+
+
+.popup-wrapper {
+    z-index: 100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    &__mask {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        background-color: rgba(Color.$bg-mask, 0.8);
+    }
+    &__contents-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px;
+        width: fit-content;
+        height: 450px;
+        position: relative;
+        overflow: auto;
+        z-index: 1;
+        scrollbar-width: none;
+        &::-webkit-scrollbar {
+            display: none;
+        }
+        &--border- {
+            &top, &right, &bottom, &left {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+                border-radius: 3px;
+            }
+            &top {
+                border-top: 2px solid Color.$bg-green;
+            }
+            &right {
+                border-right: 2px solid Color.$bg-green;
+            }
+            &bottom {
+                border-bottom: 2px solid Color.$bg-green;
+            }
+            &left {
+                border-left: 2px solid Color.$bg-green;
+            }
+        }
+    }
+
+
+
+    ///////////////////////////////////////////////////////////////////
+    // mount animation
+    ///////////////////////////////////////////////////////////////////
+    &.enter {
+        .popup-wrapper__contents-box {
+            background-color: inherit;
+            opacity: 0;
+        }
+        .popup-wrapper__contents-box--border- {
+            &top {
+                clip-path: inset(0 50% 0 50%);
+            }
+            &right {
+                clip-path: inset(50% 0 50% 0);
+            }
+            &bottom {
+                clip-path: inset(0 50% 0 50%);
+            }
+            &left {
+                clip-path: inset(50% 0 50% 0);
+            }
+        }
+    }
+    &.enter-active {
+        .popup-wrapper__contents-box {
+            background-color: Color.$bg-black;
+            opacity: 1;
+            transition: all .2s .1s ease-in-out;
+            &--border- {
+                &top, &right, &bottom, &left {
+                    clip-path: inset(0);
+                    transition: all .2s .3s ease-in-out;
+                }
+            }
+        }
+    }
+    &.enter-done {
+        .popup-wrapper__contents-box {
+            background-color: Color.$bg-black;
+            opacity: 1;
+            &--border- {
+                &top, &right, &bottom, &left {
+                    clip-path: inset(0);
+                }
+            }
+        }
+    }
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+
+
+
+    ///////////////////////////////////////////////////////////////////
+    // unmount animation
+    ///////////////////////////////////////////////////////////////////
+    &.exit {
+        .popup-wrapper__contents-box {
+            background-color: Color.$bg-black;
+            opacity: 1;
+            &--border- {
+                &top, &right, &bottom, &left {
+                    clip-path: inset(0);
+                }
+            }
+        }
+    }
+    &.exit-active {
+        .popup-wrapper__contents-box {
+            background-color: inherit;
+            opacity: 0;
+            transition: all .2s .3s ease-in-out;
+            &--border- {
+                &top, &right, &bottom, &left {
+                    transition: all .2s .1s ease-in-out;
+                }
+                &top {
+                    clip-path: inset(0 50% 0 50%);
+                }
+                &right {
+                    clip-path: inset(50% 0 50% 0);
+                }
+                &bottom {
+                    clip-path: inset(0 50% 0 50%);
+                }
+                &left {
+                    clip-path: inset(50% 0 50% 0);
+                }
+            }
+        }
+    }
+    &.exit-done {
+        .popup-wrapper__contents-box {
+            background-color: inherit;
+            opacity: 0;
+            &--border- {
+                &top {
+                    clip-path: inset(0 50% 0 50%);
+                }
+                &right {
+                    clip-path: inset(50% 0 50% 0);
+                }
+                &bottom {
+                    clip-path: inset(0 50% 0 50%);
+                }
+                &left {
+                    clip-path: inset(50% 0 50% 0);
+                }
+            }
+        }
+    }
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+}

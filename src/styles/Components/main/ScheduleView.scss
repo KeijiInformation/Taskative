@@ -1,0 +1,30 @@
+@charset "utf-8";
+@use "../../Variables/Color.scss";
+@use "../../Functions/Size.scss";
+@use "../../Functions/Media.scss";
+
+
+
+.schedule-view-wrapper {
+    &__tasks-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: start;
+        &--li {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: Color.$font-black;
+            font-size: Size.fontSize(12);
+            position: relative;
+            @include Media.mobile() {
+                color: Color.$font-white;
+            }
+            &.onsection {
+                font-weight: bold;
+                border-bottom: 1px solid Color.$font-black;
+            }
+        }
+    }
+}

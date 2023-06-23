@@ -1,0 +1,49 @@
+@charset "utf-8";
+@use "../../Variables/Color.scss";
+@use "../../Functions/Media.scss";
+
+
+
+.move-page-btn-wrapper {
+    z-index: 0;
+    background-color: Color.$bg-black;
+    position: relative;
+    width: 80px;
+    height: 80px;
+    box-shadow: rgba(0, 0, 0, 0.36) 0px 3px 6px, rgba(0, 0, 0, 0.43) 0px 3px 6px;
+    transition: all .1s ease-in-out;
+    @include Media.mobile {
+        width: 60px;
+        height: 60px;
+    }
+
+    &__btn {
+        z-index: 1;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: transparent;
+    }
+    &__img {
+        z-index: 0;
+        font-size: 60px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        color: Color.$bg-blue;
+        transform: translate(-50%, -50%);
+        @include Media.mobile {
+            font-size: 40px;
+        }
+    }
+
+    &:hover {
+        box-shadow: rgba(0, 0, 0, 0.36) 0px 4px 8px, rgba(0, 0, 0, 0.43) 0px 4px 8px;
+        transform: translateY(-1px);
+    }
+    &.clicked {
+        box-shadow: rgba(0, 0, 0, 0.06) 0px 2px 4px, rgba(0, 0, 0, 0.13) 0px 2px 4px;
+        transform: translateY(2px);
+        border: 1px solid Color.$bg-green;
+    }
+}

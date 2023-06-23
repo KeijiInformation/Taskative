@@ -1,0 +1,12 @@
+@charset "utf-8";
+
+
+
+.break-time-input-wrapper {
+    display: flex;
+    gap: 16px;
+
+    &__start-time-input-wrapper, &__end-time-input-wrapper {
+        width: 100px;
+    }
+}

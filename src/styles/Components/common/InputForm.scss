@@ -1,0 +1,34 @@
+@charset "utf-8";
+@use "../../Variables/Color.scss";
+@use "../../Functions/Size.scss";
+
+
+
+.input-form-wrapper {
+    position: relative;
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        &--input-check-box, &--input-box {
+            .error-message-list {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                &__message--text {
+                    color: Color.$font-red;
+                    font-size: Size.fontSize(12);
+                }
+            }
+        }
+        &--input-check-box label {
+            display: flex;
+            gap: 12px;
+        }
+    }
+}
+
+
+input {
+    color: Color.$font-black;
+}
