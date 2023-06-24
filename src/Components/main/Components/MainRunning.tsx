@@ -36,7 +36,7 @@ export default function MainRunning(props: Props) {
     //////////////////////////////////////////////////////////////////
     // on section
     //////////////////////////////////////////////////////////////////
-    const [basis, setbasis] = useState<Time>(new Time(props.allocateData[0][0][3], props.allocateData[0][0][4]));
+    const [basis, setbasis] = useState<Time>(new Time(userData.contemporary.basis[0], userData.contemporary.basis[1]));
     const [startTime, setstartTime] = useState<Time>(new Time(props.allocateData[props.onSection][0][3], props.allocateData[props.onSection][0][4], basis));
     const [endTime, setendTime] = useState<Time>(new Time(props.allocateData[props.onSection][1][3], props.allocateData[props.onSection][1][4], basis));
     useEffect(() => {

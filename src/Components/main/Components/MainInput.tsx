@@ -3,7 +3,8 @@ import BreakTimeInput from "./BreakTimeInput";
 import { AddBtn, NormalBtn } from "../../common";
 import { Time } from "../../../Class";
 import "../../../styles/Components/main/MainInput.scss";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { UserDataContext } from "../../../App";
 
 
 
@@ -21,6 +22,19 @@ interface Props {
 
 
 export default function MainInput(props: Props) {
+    ////////////////////////////////////////////////////////////
+    // global
+    ////////////////////////////////////////////////////////////
+    const userData = useContext(UserDataContext);
+    ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+
+
+
+
+
+
     ////////////////////////////////////////////////////////////
     // errorStates
     ////////////////////////////////////////////////////////////
@@ -137,6 +151,11 @@ export default function MainInput(props: Props) {
     function handleSetTime(event: React.ChangeEvent<HTMLInputElement>, identifier: "endtime" | "breaktime", index?: number, whichInput?: "start" | "end"): void {
         const strData: string[] = event.target.value.split(":");
         const newTime: Time     = new Time(Number(strData[0]), Number(strData[1]), props.startTime);
+        if (newTime.minutes % 10 < 3) {
+            newTime.floorToJustTime(userData.config.timeStep);
+        } else {
+            newTime.ceilToJustTime(userData.config.timeStep);
+        }
         let validateResult: boolean = true;
 
         // 終了時間の入力

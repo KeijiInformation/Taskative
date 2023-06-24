@@ -1,5 +1,7 @@
 import { Time } from "../../../Class";
+import { useContext } from "react";
 import "../../../styles/Components/main/TimeInput.scss";
+import { UserDataContext } from "../../../App";
 
 
 
@@ -10,14 +12,33 @@ interface Props {
 
 
 export default function TimeInput(props: Props) {
+    //////////////////////////////////////////////////////////////////////////////
+    // global
+    //////////////////////////////////////////////////////////////////////////////
+    const userData = useContext(UserDataContext);
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    // render
+    //////////////////////////////////////////////////////////////////////////////
     return (
         <div className="time-input-wrapper">
             {props.timeData.isSet()
             ?
-                <input className="time-input-wrapper__input" type="time" value={`${props.timeData.getHoursStr()}:${props.timeData.getMinStr()}`} onChange={(event) => props.handleSetTime(event)}/>
+                <input className="time-input-wrapper__input" type="time" step={userData.config.timeStep*60} value={`${props.timeData.getHoursStr()}:${props.timeData.getMinStr()}`} onChange={(event) => props.handleSetTime(event)}/>
             :
-                <input className="time-input-wrapper__input" type="time" onChange={(event) => props.handleSetTime(event)}/>
+                <input className="time-input-wrapper__input" type="time" step={userData.config.timeStep*60} onChange={(event) => props.handleSetTime(event)}/>
             }
         </div>
     )
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
 }

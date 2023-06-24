@@ -1,23 +1,110 @@
 import Task from "./Task";
 import Time from "./Time";
+import { Tasks } from "./data";
+
+
+
+// Tasksクラスを時間分配用に拡張
+class AllocateTask extends Task {
+    timeRange: [Time, Time] | undefined;
+    minAllocate: number;
+    diffFromIdeal: number;
+    constructor(task: Task) {
+        super(task.uid, task.id, task.title, task.max, task.min, task.isRequired, task.registered, task.deleted, task.order, task.isExtendable);
+        this.timeRange = undefined;
+        this.minAllocate = -1;
+        this.diffFromIdeal = 0;
+    }
+    setTimeRange(start: Time, end: Time): boolean {
+        if (start.isSet() && end.isSet() && end.compareTo(start) >= 0) {
+            this.timeRange = [start, end];
+            return true;
+        } else {
+            return false;
+        }
+    }
+    copy(): AllocateTask {
+        const taskCopy: Task = super.copy();
+        const result: AllocateTask = new AllocateTask(taskCopy);
+        if (this.timeRange) {
+            result.setTimeRange(this.timeRange[0], this.timeRange[1]);
+        }
+        result.minAllocate  = this.minAllocate;
+        result.diffFromIdeal = this.diffFromIdeal;
+        return result;
+    }
+}
+class AllocateTasks extends Tasks {
+    data: AllocateTask[];
+    constructor(tasks?: Tasks) {
+        super();
+        this.data = [];
+        if (tasks) {
+            tasks.data.forEach(task => {
+                this.add(new AllocateTask(task));
+            })
+        }
+    }
+    add(task: AllocateTask) {
+        super.add(task);
+    }
+    getFirstTaskHasMin(): AllocateTask | undefined {
+        for (let task of this.data) {
+            if (task.minAllocate > 0) {
+                return task;
+            }
+        }
+        return undefined;
+    }
+    sortByPattern(pattern: number[]): void {
+        const newData: AllocateTask[] = [];
+        pattern.forEach(index => {
+            newData.push(this.data[index]);
+        })
+        this.data = newData;
+    }
+    sortByTimeRange(): void {
+        this.data.sort((a, b) => {
+            if (a.timeRange && b.timeRange) {
+                return a.timeRange[0].compareTo(b.timeRange[0]);
+            }
+            return 0;
+        })
+    }
+    copy(): AllocateTasks {
+        const result: AllocateTasks = new AllocateTasks();
+        this.data.forEach(task => {
+            result.data.push(task.copy());
+        })
+        return result;
+    }
+}
 
 
 
 export default class TimeAllocater {
     start: Time;
     end: Time;
-    breaktimes: Array<[Time, Time]>;
-    tasks: Array<Task>;
+    breakTasks: AllocateTasks;
+    tasks: AllocateTasks;
     numOfMaxPatterns: number;
-    activeTime: number = 0;
-    constructor(start: Time, end: Time, breaktimes: Array<[Time, Time]>, tasks: Array<Task>) {
+    activeTime: number;
+    timeStep: number;
+    constructor(start: Time, end: Time, breakTimes: Array<[Time, Time]>, tasks: Tasks, timeStep: number) {
         this.start = start;
         this.end   = end;
-        this.breaktimes = breaktimes;
-        this.tasks = tasks;
+        this.breakTasks = new AllocateTasks();
+        breakTimes.forEach(breakTime => {
+            const allocateTask: AllocateTask = new AllocateTask(new Task(tasks.data[0].uid, -1, "休憩", -1, -1, true, [-1, -1, -1], [false, -1, -1, -1], -1, false));
+            allocateTask.setTimeRange(breakTime[0], breakTime[1]);
+            this.breakTasks.add(allocateTask);
+        })
+        this.tasks = new AllocateTasks(tasks.copy());
+        tasks.sortByOrder(true);
         this.numOfMaxPatterns = 1;
-        for (let i=1; i<=tasks.length; i++) this.numOfMaxPatterns *= i;
+        for (let i=1; i<=tasks.data.length; i++) this.numOfMaxPatterns *= i;
         this.activeTime = this.calcActiveTime();
+        this.timeStep = timeStep;
     }
 
 
@@ -35,8 +122,10 @@ export default class TimeAllocater {
         result += this.end.differFrom(this.start).getValueAsMin();
         // breaktimesの時間(min)
         let breaktimeAsMin = 0;
-        this.breaktimes.forEach(breaktime => {
-            breaktimeAsMin += breaktime[1].differFrom(breaktime[0]).getValueAsMin();
+        this.breakTasks.data.forEach(breakTask => {
+            if (breakTask.timeRange) {
+                breaktimeAsMin += breakTask.timeRange[1].differFrom(breakTask.timeRange[0]).getValueAsMin();
+            }
         })
         result -= breaktimeAsMin;
         return result;
@@ -51,9 +140,8 @@ export default class TimeAllocater {
 
 
     //////////////////////////////////////////////////////////////////////////////
-    // arr operator
+    // 割り当て用の配列計算関数群
     //////////////////////////////////////////////////////////////////////////////
-    // 配列の合計値を返す関数
     listSum(list: Array<number>): number {
         let result = 0;
         list.forEach(elem => result += elem);
@@ -76,41 +164,38 @@ export default class TimeAllocater {
         return [...mainArr];
     }
 
+    ceilToJustVal(val: number): number {
+        while (val % this.timeStep !== 0) {
+            val++;
+        }
+        return val;
+    }
+    floorToJustVal(val: number): number {
+        while (val % this.timeStep !== 0) {
+            val--;
+        }
+        return val;
+    }
+
     // targetValを配列の要素比に分配して返す関数
-    distributeArrByRatio(targetVal: number, ratioSample: Array<number>): Array<number> {
+    distributeArrByRatio(targetVal: number, ratioSample: number[], maxSample: number[]): Array<number> {
         const result: Array<number> = [];
         let sum = this.listSum(ratioSample);
         ratioSample.forEach(elem => {
-            result.push(Math.floor(targetVal * (elem / sum)));
+            let val: number = Math.floor(targetVal * (elem / sum));
+            val = this.floorToJustVal(val);
+            result.push(val);
         })
-        // 残りの部分を分配
+        // 残りの部分を分配(maxに達していないものに分配・もしくは最も少ない物に分配)
         targetVal -= this.listSum(result);
-        while (targetVal > 0) {
-            result[Math.floor(Math.random()*result.length)] ++;
-            targetVal --;
+        while (targetVal >= this.timeStep) {
+            const targetIndex: number = Math.floor(Math.random()*result.length);
+            // 比率が0じゃない かつ maxに達してない
+            if (ratioSample[targetIndex] > 0 && result[targetIndex] + this.timeStep <= maxSample[targetIndex]) {
+                result[targetIndex] += this.timeStep;
+                targetVal -= this.timeStep;
+            }
         }
-        return result;
-    }
-
-    // isExtendable === true が存在するかどうかを判定する関数
-    hasExtendable(): boolean {
-        let result: boolean = false;
-        this.tasks.forEach(task => {
-            if (task.isExtendable === true) {
-                result = true;
-            }
-        })
-        return result;
-    }
-
-    // isRequired === true が存在するかどうかを判定する関数
-    hasRequired(): boolean {
-        let result: boolean = false;
-        this.tasks.forEach(task => {
-            if (task.isRequired === true) {
-                result = true;
-            }
-        })
         return result;
     }
     //////////////////////////////////////////////////////////////////////////////
@@ -147,7 +232,7 @@ export default class TimeAllocater {
     // 指定された個数だけパターンを返す関数
     getOrderPattern(numberOfPatterns: number): Array< number[] > {
         let sampleModel: Array<number> = [];
-        for (let i=0; i<this.tasks.length; i++) {
+        for (let i=0; i<this.tasks.data.length; i++) {
             sampleModel.push(i);
         }
 
@@ -185,312 +270,589 @@ export default class TimeAllocater {
 
 
     //////////////////////////////////////////////////////////////////////////////
+    // 各タスクの分単位の分配を決定
+    //////////////////////////////////////////////////////////////////////////////
+    // 最大時間の合計がactiveTimeを超えない場合
+    // maxSumの割合で分配した後isExtendableで分配
+    // isExtendableがなければmaxで分配
+    createMinDistributionByMax(maxSum: number): void {
+        // 最大時間で分配
+        let ratioSample: number[] = [];
+        let maxSample:   number[] = [];
+        this.tasks.data.forEach(task => {
+            ratioSample.push(task.max);
+            maxSample.push(task.max);
+        })
+        let minDistribution: number[] = this.distributeArrByRatio(maxSum, ratioSample, maxSample);
+        // 残りの分配
+        let remaindMin: number = this.activeTime - maxSum;
+        let remaindDistribution: number[];
+        // 残りをisExtendableがあればそこで分配
+        // isExtendableがなければmaxで分配
+        if (this.tasks.hasExtendable()) {
+            ratioSample = this.tasks.data.map(task => {
+                if (task.isExtendable) {
+                    return task.max;
+                } else {
+                    return 0;
+                }
+            })
+        }
+        remaindDistribution = this.distributeArrByRatio(remaindMin, ratioSample, maxSample);
+        minDistribution = this.addEveryElem(minDistribution, remaindDistribution);
+        this.tasks.data.forEach((task, index) => {
+            task.minAllocate = minDistribution[index]
+        })
+    }
+
+
+
+    // 最小時間の合計がactiveTimeを超えない場合
+    // minSumの割合で分配した後maxの割合で分配
+    createMinDistributionByMin(minSum: number): void {
+        // 最大時間で分配
+        let ratioSample: number[] = [];
+        let maxSample:   number[] = [];
+        this.tasks.data.forEach(task => {
+            ratioSample.push(task.min);
+            maxSample.push(task.max);
+        })
+        let   minDistribution: number[] = this.distributeArrByRatio(minSum, ratioSample, maxSample);
+        // 残りの分配(maxの割合で分配)
+        let remaindMin: number = this.activeTime - minSum;
+        ratioSample = this.tasks.data.map(task => task.max);
+        let remaindDistribution: number[] = this.distributeArrByRatio(remaindMin, ratioSample, maxSample);
+        minDistribution = this.addEveryElem(minDistribution, remaindDistribution);
+        this.tasks.data.forEach((task, index) => {
+            task.minAllocate = minDistribution[index];
+        })
+    }
+
+
+
+    // 最小時間ですらactiveTimeを超える場合
+    // isRequired = falseがあれば削ってactiveTimeを超えなくなったらOK
+    // isRequired = falseがなくなったらminで分配
+    createMinDistributionByUnderLimit(): void {
+        let minSum: number = this.tasks.getSumValue("min");
+        // タスクの削り作業(isRequiredでないかつorderが高い順)
+        while (this.activeTime < minSum) {
+            let targetOrder: number = this.tasks.getMaxOrder();
+            let target: Task | undefined = this.tasks.getTaskByOrder(targetOrder);
+            // orderが高くisRequired = falseの物を捜索
+            while (target !== undefined && target.isRequired) {
+                targetOrder--;
+                target = this.tasks.getTaskByOrder(targetOrder);
+            }
+            // 存在しなければbreak
+            if (!target) {
+                minSum = this.activeTime;
+                break;
+            }
+            // あれば削る
+            this.tasks.filterByID(target.id);
+            minSum = this.tasks.getSumValue("min");
+        }
+        this.createMinDistributionByMin(minSum);
+    }
+
+
+
+    // 分単位でタスクの時間分配を決定する関数
+    descideMinDistribution(): void {
+        const maxSum = this.tasks.getSumValue("max");
+        const minSum = this.tasks.getSumValue("min");
+        // 最大時間の合計がactiveTimeを超えない場合
+        if (this.activeTime >= maxSum) {
+            this.createMinDistributionByMax(maxSum);
+        } else if (this.activeTime < maxSum && this.activeTime >= minSum) {
+            this.createMinDistributionByMin(minSum);
+        } else {
+            this.createMinDistributionByUnderLimit();
+        }
+    }
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    // 時間のセクションに関する関数
+    //////////////////////////////////////////////////////////////////////////////
+    // 戻り値＝開始時間, 終了時間, 休憩識別用の値(-1なら休憩) を要素とする配列
+    createTimeSection(): Array<[Time, Time, number]> {
+        const result: Array<[Time, Time, number]> = [];
+        let onTime: Time = this.start;
+        this.breakTasks.data.forEach(breakTask => {
+            if (breakTask.timeRange) {
+                result.push([onTime.copy(), breakTask.timeRange[0].copy(), 0]);
+                result.push([breakTask.timeRange[0].copy(), breakTask.timeRange[1].copy(), -1]);
+                onTime = breakTask.timeRange[1];
+            }
+        })
+        result.push([onTime.copy(), this.end.copy(), 0]);
+        return result;
+    }
+    getSectionMin(section: [Time, Time]): number {
+        return section[1].differFrom(section[0]).getValueAsMin();
+    }
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    // 時刻への割り当て
+    //////////////////////////////////////////////////////////////////////////////
+    descideTaskTime(task: AllocateTask, section: [Time, Time]): void {
+        // 最大まで割り当ててもオーバーしない場合
+        if (task.minAllocate < this.getSectionMin(section)) {
+            // 割り当て
+            let taskStart: Time = section[0].copy();
+            let taskEnd:   Time = section[0].copy();
+            taskEnd.add(task.minAllocate);
+            task.timeRange = [taskStart, taskEnd];
+            task.minAllocate = 0;
+            // 残りが(timeStep + 5)分未満ならばsectionの終わりまで割り当て
+            if (this.getSectionMin([taskEnd, section[1]]) < this.timeStep + 5) {
+                task.timeRange = [taskStart, section[1].copy()];
+                task.diffFromIdeal += this.getSectionMin([taskEnd, section[1]]);
+            }
+        // 割り当てるとオーバーする場合
+        } else {
+            task.timeRange = [section[0].copy(), section[1].copy()];
+            task.minAllocate -= this.getSectionMin(section);
+            // タスクに残された分配がtimeStep以下なら切り捨て
+            if (task.minAllocate <= this.timeStep) {
+                task.diffFromIdeal -= task.minAllocate;
+                task.minAllocate = 0;
+            }
+        }
+    }
+
+
+
+    descideTimeAllocationByPattern(pattern: number[]): AllocateTasks {
+        // 並び替え
+        const tasks: AllocateTasks = this.tasks.copy();
+        tasks.sortByPattern(pattern);
+        // 時刻の割り当て
+        let onTime: Time;
+        let onTask: AllocateTask | undefined;
+        let sectionMin: number;
+        const timeSection: Array<[Time, Time, number]> = this.createTimeSection();
+        timeSection.forEach(section => {
+            if (section[2] !== -1) {
+                onTime = section[0].copy();
+                sectionMin = this.getSectionMin([section[0], section[1]]);
+                while (sectionMin > 0) {
+                    onTask = tasks.getFirstTaskHasMin();
+                    if (onTask) {
+                        this.descideTaskTime(onTask, [onTime, section[1]]);
+                        if (onTask.timeRange) {
+                            onTime = onTask.timeRange[1];
+                            sectionMin = this.getSectionMin([onTime, section[1]]);
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+        })
+        // breaktimesの格納
+        this.breakTasks.data.forEach(breakTask => {
+            tasks.add(breakTask.copy());
+        })
+        // sort
+        tasks.sortByTimeRange();
+        return tasks;
+    }
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    // 決定
+    //////////////////////////////////////////////////////////////////////////////
+    // 理想に対する距離(絶対値の合計)を計算する関数
+    calcDifferenceFromIdeal(tasks: AllocateTasks): number {
+        let result: number = 0;
+        tasks.data.forEach(task => {
+            result += Math.abs(task.diffFromIdeal);
+        })
+        return result;
+    }
+
+
+
+    // 実際に割り当てを実行する関数
+    allocate(schedulingByOrder: boolean): Array<[Time, Time, number]> {
+        // 分単位の分配
+        this.descideMinDistribution();
+        // パターンの作成
+        let patterns: Array<number[]>;
+        if (schedulingByOrder) {
+            patterns = [[]];
+            for (let i=0; i<this.tasks.data.length; i++) {
+                patterns[0].push(i)
+            }
+        } else {
+            patterns = this.getOrderPattern(100);
+        }
+        let idealPatternDiff:  number;
+        let idealTasksPattern: AllocateTasks = new AllocateTasks();
+        // パターンの検証
+        patterns.forEach((pattern, index) => {
+            const allocateTasks: AllocateTasks = this.descideTimeAllocationByPattern(pattern);
+            if (index === 0) {
+                idealPatternDiff  = this.calcDifferenceFromIdeal(allocateTasks);
+                idealTasksPattern = allocateTasks;
+            } else {
+                const onDiff: number = this.calcDifferenceFromIdeal(allocateTasks);
+                if (onDiff < idealPatternDiff) {
+                    idealPatternDiff  = onDiff;
+                    idealTasksPattern = allocateTasks;
+                }
+            }
+        })
+        // 決定されたパターンから結果配列を作成
+        const result: Array<[Time, Time, number]> = []
+        idealTasksPattern.data.forEach(task => {
+            if (task.timeRange) {
+                result.push([task.timeRange[0].copy(), task.timeRange[1].copy(), task.id]);
+            }
+        })
+        return result;
+    }
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////////////////////////
     // 時刻の割り当て
     //////////////////////////////////////////////////////////////////////////////
-    // start ~ end に対してminutesを割り当て、割り当て結果の時刻と割り当てきれなかった時間を返す関数
-    allocateMinutes(start: Time, end: Time, minutes: number): [Time, Time, number] {
-        let onTime: Time = new Time(start.hours, start.minutes, this.start);
-        onTime.add(minutes);
-        // endを過ぎる場合
-        if (onTime.compareTo(end) > 0) {
-            const duration = minutes - end.differFrom(start).getValueAsMin();
-            return [start, end, duration];
-        // endをすぎない場合
-        } else {
-            return [start, onTime, 0];
-        }
-    }
+    // // start ~ end に対してminutesを割り当て、割り当て結果の時刻と割り当てきれなかった時間を返す関数
+    // allocateMinutes(start: Time, end: Time, minutes: number): [Time, Time, number] {
+    //     let onTime: Time = new Time(start.hours, start.minutes, this.start);
+    //     onTime.add(minutes);
+    //     // endを過ぎる場合
+    //     if (onTime.compareTo(end) > 0) {
+    //         const duration = minutes - end.differFrom(start).getValueAsMin();
+    //         return [start, end, duration];
+    //     // endをすぎない場合
+    //     } else {
+    //         return [start, onTime, 0];
+    //     }
+    // }
 
-    // 指定された順序でタスクの時刻を決定する関数
-    descideTimeAllocation(minAllocation: number[], order: number[]): [Array<[Time, Time, number]>, number[]] {
-        // 各時刻セクションの配列を作成 Array< [Time, Time, boolean] > 休憩時間にはfalseを格納する
-        const timeSections: Array< [Time, Time, boolean] > = [];
-        let onTime: Time = this.start;
-        this.breaktimes.forEach(breaktime => {
-            let beforeBreak: Time = new Time(breaktime[0].hours, breaktime[0].minutes, this.start);
-            timeSections.push( [onTime, beforeBreak, true] );
-            timeSections.push( [breaktime[0], breaktime[1], false] );
-            onTime = new Time(breaktime[1].hours, breaktime[1].minutes, this.start);
-        })
-        timeSections.push( [onTime, this.end, true] );
-
-
-        // 割り当ての開始
-        const result: [Array<[Time, Time, number]>, number[]] = [[], []];
-        let timeSectionIndex: number = 0;
-        let onTimeSection: [Time, Time, boolean] = timeSections[timeSectionIndex];
-        onTime = onTimeSection[0].copy();
-        order.forEach(target => {
-            // let task: Task = this.tasks[target];
-            let minutes: number = minAllocation[target];
-
-            while (minutes > 0 && timeSectionIndex <= timeSections.length-1) {
-                // 割り当て時刻の取得
-                let allocateResult: [Time, Time, number] = this.allocateMinutes(onTime, onTimeSection[1], minutes);
-                // 結果の格納・onTimeをとminutesを更新
-                result[0].push([allocateResult[0], allocateResult[1], target]);
-                let dataIndex: number = result[0].length-1;
-                onTime  = allocateResult[1];
-                minutes = allocateResult[2];
-
-                // onTimeが時刻セクションのendと一致するとき、セクションの移動を行う
-                if (onTime.compareTo(onTimeSection[1]) === 0) {
-                    timeSectionIndex++;
-                    onTimeSection = timeSections[timeSectionIndex];
-                    if (!onTimeSection) {
-                        break;
-                    }
-                    while (!onTimeSection[2]) {
-                        result[0].push([onTimeSection[0], onTimeSection[1], -1]);
-                        timeSectionIndex++;
-                        onTimeSection = timeSections[timeSectionIndex];
-                    }
-                    onTime = onTimeSection[0].copy();
-                }
-
-                // 残り時間が5分以下の時、切り捨てて次のタスクに付加する
-                if (minutes <= 5) {
-                    if (target+1 < minAllocation.length) {
-                        minAllocation[target+1] += minutes;
-                    }
-                    minutes = 0;
-                // セクションの残りが5分以下のとき、残りを現在のタスクのものとしセクションを移動する
-                } else if (onTimeSection[1].differFrom(onTime).getValueAsMin() <= 5) {
-                    result[0][dataIndex][1] = onTimeSection[1];
-                    timeSectionIndex++;
-                    onTimeSection = timeSections[timeSectionIndex];
-                    if (!onTimeSection) {
-                        break;
-                    }
-                    while (!onTimeSection[2]) {
-                        result[0].push([onTimeSection[0], onTimeSection[1], -1]);
-                        timeSectionIndex++;
-                        onTimeSection = timeSections[timeSectionIndex];
-                    }
-                    onTime = onTimeSection[0].copy();
-                    if (target+1 < minAllocation.length) {
-                        minAllocation[target+1] -= onTimeSection[1].differFrom(onTime).getValueAsMin();
-                        if (minAllocation[target+1] < 0) {
-                            minAllocation[target+1] = 0;
-                        }
-                    }
-                }
-            }
-        })
+    // // 指定された順序でタスクの時刻を決定する関数
+    // descideTimeAllocation(minAllocation: number[], order: number[]): [Array<[Time, Time, number]>, number[]] {
+    //     // 各時刻セクションの配列を作成 Array< [Time, Time, boolean] > 休憩時間にはfalseを格納する
+    //     const timeSections: Array< [Time, Time, boolean] > = [];
+    //     let onTime: Time = this.start;
+    //     this.breakTasks.forEach(breaktime => {
+    //         let beforeBreak: Time = new Time(breaktime[0].hours, breaktime[0].minutes, this.start);
+    //         timeSections.push( [onTime, beforeBreak, true] );
+    //         timeSections.push( [breaktime[0], breaktime[1], false] );
+    //         onTime = new Time(breaktime[1].hours, breaktime[1].minutes, this.start);
+    //     })
+    //     timeSections.push( [onTime, this.end, true] );
 
 
-        // 実際に割り当てた時間(min)を計算しresultに格納
-        const actualMinutes: number[] = [];
-        for (let i=0; i<minAllocation.length; i++) {
-            actualMinutes.push(0);
-        }
-        result[0].forEach(timeDist => {
-            if (timeDist[2] !== -1) {
-                actualMinutes[timeDist[2]] += timeDist[1].differFrom(timeDist[0]).getValueAsMin();
-            }
-        })
-        result[1] = [...actualMinutes];
-        return result;
-    }
-    //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////
+    //     // 割り当ての開始
+    //     const result: [Array<[Time, Time, number]>, number[]] = [[], []];
+    //     let timeSectionIndex: number = 0;
+    //     let onTimeSection: [Time, Time, boolean] = timeSections[timeSectionIndex];
+    //     onTime = onTimeSection[0].copy();
+    //     order.forEach(target => {
+    //         // let task: Task = this.tasks[target];
+    //         let minutes: number = minAllocation[target];
+
+    //         while (minutes > 0 && timeSectionIndex <= timeSections.length-1) {
+    //             // 割り当て時刻の取得
+    //             let allocateResult: [Time, Time, number] = this.allocateMinutes(onTime, onTimeSection[1], minutes);
+    //             // 結果の格納・onTimeをとminutesを更新
+    //             result[0].push([allocateResult[0], allocateResult[1], target]);
+    //             let dataIndex: number = result[0].length-1;
+    //             onTime  = allocateResult[1];
+    //             minutes = allocateResult[2];
+
+    //             // onTimeが時刻セクションのendと一致するとき、セクションの移動を行う
+    //             if (onTime.compareTo(onTimeSection[1]) === 0) {
+    //                 timeSectionIndex++;
+    //                 onTimeSection = timeSections[timeSectionIndex];
+    //                 if (!onTimeSection) {
+    //                     break;
+    //                 }
+    //                 while (!onTimeSection[2]) {
+    //                     result[0].push([onTimeSection[0], onTimeSection[1], -1]);
+    //                     timeSectionIndex++;
+    //                     onTimeSection = timeSections[timeSectionIndex];
+    //                 }
+    //                 onTime = onTimeSection[0].copy();
+    //             }
+
+    //             // 残り時間が5分以下の時、切り捨てて次のタスクに付加する
+    //             if (minutes <= 5) {
+    //                 if (target+1 < minAllocation.length) {
+    //                     minAllocation[target+1] += minutes;
+    //                 }
+    //                 minutes = 0;
+    //             // セクションの残りが5分以下のとき、残りを現在のタスクのものとしセクションを移動する
+    //             } else if (onTimeSection[1].differFrom(onTime).getValueAsMin() <= 5) {
+    //                 result[0][dataIndex][1] = onTimeSection[1];
+    //                 timeSectionIndex++;
+    //                 onTimeSection = timeSections[timeSectionIndex];
+    //                 if (!onTimeSection) {
+    //                     break;
+    //                 }
+    //                 while (!onTimeSection[2]) {
+    //                     result[0].push([onTimeSection[0], onTimeSection[1], -1]);
+    //                     timeSectionIndex++;
+    //                     onTimeSection = timeSections[timeSectionIndex];
+    //                 }
+    //                 onTime = onTimeSection[0].copy();
+    //                 if (target+1 < minAllocation.length) {
+    //                     minAllocation[target+1] -= onTimeSection[1].differFrom(onTime).getValueAsMin();
+    //                     if (minAllocation[target+1] < 0) {
+    //                         minAllocation[target+1] = 0;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     })
 
 
-
-
-
-
-    //////////////////////////////////////////////////////////////////////////////
-    // 分単位の割り当て
-    //////////////////////////////////////////////////////////////////////////////
-    // 分単位での時間を割り当てを決定する関数
-    descideMinAllocation(): number[] {
-        let result:  number[] = [];
-        let minutes: number   = this.activeTime;
-
-        // 最大時間と最小時間の配列定義
-        const maxMinutesList: number[] = this.tasks.map(task => {
-            return task.max;
-        })
-        const minMinutesList: number[] = this.tasks.map(task => {
-            return task.min;
-        })
-
-        // 最大時間の分配が可能な場合
-        if (this.listSum(maxMinutesList) <= this.activeTime) {
-            result = [...maxMinutesList];
-            minutes -= this.listSum(maxMinutesList);
-            let remaindDist: number[] = [];
-            if (this.hasExtendable()) {
-                this.tasks.forEach(task => {
-                    if (task.isExtendable) {
-                        remaindDist.push(task.max);
-                    } else {
-                        remaindDist.push(0);
-                    }
-                })
-                remaindDist = this.distributeArrByRatio(minutes, remaindDist);
-            } else {
-                remaindDist = this.distributeArrByRatio(minutes, maxMinutesList);
-            }
-            result = this.addEveryElem(result, remaindDist);
-
-        // 最大時間は無理だが最小時間の分配が可能な場合
-        } else if (this.listSum(maxMinutesList) > this.activeTime && this.listSum(minMinutesList) <= this.activeTime) {
-            result = [...minMinutesList];
-            minutes -= this.listSum(minMinutesList);
-            let remaindDist: number[] = [];
-            if (this.hasRequired()) {
-                this.tasks.forEach(task => {
-                    if (task.isRequired) {
-                        remaindDist.push(task.min);
-                    } else {
-                        remaindDist.push(0);
-                    }
-                })
-                remaindDist = this.distributeArrByRatio(minutes, remaindDist);
-            } else {
-                remaindDist = this.distributeArrByRatio(minutes, minMinutesList);
-            }
-            result = this.addEveryElem(result, remaindDist);
-            // isExtendableがfalseのやつは最大を超えないようにする
-            minutes -= this.listSum(remaindDist);
-            this.tasks.forEach((task, index) => {
-                if (task.max < result[index]) {
-                    minutes += result[index] - task.max;
-                    result[index] = task.max;
-                }
-                // if (!task.isExtendable && task.max < result[index]) {
-                //     minutes += result[index] - task.max;
-                //     result[index] = task.max;
-                // }
-            })
-            remaindDist = [];
-            // 残ったものの分配
-            if (this.hasExtendable()) {
-                this.tasks.forEach(task => {
-                    if (task.isExtendable) {
-                        remaindDist.push(task.min);
-                    } else {
-                        remaindDist.push(0);
-                    }
-                })
-                remaindDist = this.distributeArrByRatio(minutes, remaindDist);
-            } else {
-                if (this.hasRequired()) {
-                    this.tasks.forEach(task => {
-                        if (task.isExtendable) {
-                            remaindDist.push(task.min);
-                        } else {
-                            remaindDist.push(0);
-                        }
-                    })
-                    remaindDist = this.distributeArrByRatio(minutes, remaindDist);
-                } else {
-                    remaindDist = this.distributeArrByRatio(minutes, minMinutesList);
-                }
-            }
-            result = this.addEveryElem(result, remaindDist);
-
-        // 最小時間の分配も不可能な場合
-        } else {
-            // isRequred === trueだけに分配
-            let remaindDist: number[] = [];
-            this.tasks.forEach(task => {
-                if (!task.isRequired) {
-                    remaindDist.push(0);
-                } else {
-                    remaindDist.push(task.min);
-                }
-            })
-            // 稼働可能時間を超えなければ残りをminの比で分配
-            if (this.listSum(remaindDist) <= this.activeTime) {
-                result = [...remaindDist];
-                minutes -= this.listSum(result);
-                remaindDist = [];
-                this.tasks.forEach(task => {
-                    if (!task.isRequired) {
-                        remaindDist.push(task.min);
-                    } else {
-                        remaindDist.push(0);
-                    }
-                })
-                remaindDist = this.distributeArrByRatio(minutes, remaindDist);
-                result =  this.addEveryElem(result, remaindDist);
-            // それでも稼働可能時間を超える場合はすべてをminの比で分配
-            } else {
-                result = this.distributeArrByRatio(this.activeTime, minMinutesList);
-            }
-        }
-        return result;
-    }
-    //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////
+    //     // 実際に割り当てた時間(min)を計算しresultに格納
+    //     const actualMinutes: number[] = [];
+    //     for (let i=0; i<minAllocation.length; i++) {
+    //         actualMinutes.push(0);
+    //     }
+    //     result[0].forEach(timeDist => {
+    //         if (timeDist[2] !== -1) {
+    //             actualMinutes[timeDist[2]] += timeDist[1].differFrom(timeDist[0]).getValueAsMin();
+    //         }
+    //     })
+    //     result[1] = [...actualMinutes];
+    //     return result;
+    // }
+    // //////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////
 
 
 
 
 
 
-    //////////////////////////////////////////////////////////////////////////////
-    // allocator
-    //////////////////////////////////////////////////////////////////////////////
-    // 理想的な時間配分に対して実際の時間配分のずれを計算する関数
-    distanceFromIdeal(ideal: Array<number>, actual: Array<number>): number {
-        let result = 0;
-        ideal.forEach((idealVal, index) => {
-            let actualVal = actual[index];
-            result += Math.abs(actualVal - idealVal);
-        })
-        return result;
-    }
+    // //////////////////////////////////////////////////////////////////////////////
+    // // 分単位の割り当て
+    // //////////////////////////////////////////////////////////////////////////////
+    // // 分単位での時間を割り当てを決定する関数
+    // descideMinAllocation(): number[] {
+    //     let result:  number[] = [];
+    //     let minutes: number   = this.activeTime;
 
-    // 実際に時間を割り当てる関数
-    allocateTasks(schedulingByOrder: boolean): Array<[Time, Time, number]> {
-        let result: Array<[Time, Time, number]>;
-        // 分単位の割り当てを決定
-        const minutesAllocation: number[] = this.descideMinAllocation();
+    //     // 最大時間と最小時間の配列定義
+    //     const maxMinutesList: number[] = this.tasks.map(task => {
+    //         return task.max;
+    //     })
+    //     const minMinutesList: number[] = this.tasks.map(task => {
+    //         return task.min;
+    //     })
+
+    //     // 最大時間の分配が可能な場合
+    //     if (this.listSum(maxMinutesList) <= this.activeTime) {
+    //         result = [...maxMinutesList];
+    //         minutes -= this.listSum(maxMinutesList);
+    //         let remaindDist: number[] = [];
+    //         if (this.hasExtendable()) {
+    //             this.tasks.forEach(task => {
+    //                 if (task.isExtendable) {
+    //                     remaindDist.push(task.max);
+    //                 } else {
+    //                     remaindDist.push(0);
+    //                 }
+    //             })
+    //             remaindDist = this.distributeArrByRatio(minutes, remaindDist);
+    //         } else {
+    //             remaindDist = this.distributeArrByRatio(minutes, maxMinutesList);
+    //         }
+    //         result = this.addEveryElem(result, remaindDist);
+
+    //     // 最大時間は無理だが最小時間の分配が可能な場合
+    //     } else if (this.listSum(maxMinutesList) > this.activeTime && this.listSum(minMinutesList) <= this.activeTime) {
+    //         result = [...minMinutesList];
+    //         minutes -= this.listSum(minMinutesList);
+    //         let remaindDist: number[] = [];
+    //         if (this.hasRequired()) {
+    //             this.tasks.forEach(task => {
+    //                 if (task.isRequired) {
+    //                     remaindDist.push(task.min);
+    //                 } else {
+    //                     remaindDist.push(0);
+    //                 }
+    //             })
+    //             remaindDist = this.distributeArrByRatio(minutes, remaindDist);
+    //         } else {
+    //             remaindDist = this.distributeArrByRatio(minutes, minMinutesList);
+    //         }
+    //         result = this.addEveryElem(result, remaindDist);
+    //         // isExtendableがfalseのやつは最大を超えないようにする
+    //         minutes -= this.listSum(remaindDist);
+    //         this.tasks.forEach((task, index) => {
+    //             if (task.max < result[index]) {
+    //                 minutes += result[index] - task.max;
+    //                 result[index] = task.max;
+    //             }
+    //             // if (!task.isExtendable && task.max < result[index]) {
+    //             //     minutes += result[index] - task.max;
+    //             //     result[index] = task.max;
+    //             // }
+    //         })
+    //         remaindDist = [];
+    //         // 残ったものの分配
+    //         if (this.hasExtendable()) {
+    //             this.tasks.forEach(task => {
+    //                 if (task.isExtendable) {
+    //                     remaindDist.push(task.min);
+    //                 } else {
+    //                     remaindDist.push(0);
+    //                 }
+    //             })
+    //             remaindDist = this.distributeArrByRatio(minutes, remaindDist);
+    //         } else {
+    //             if (this.hasRequired()) {
+    //                 this.tasks.forEach(task => {
+    //                     if (task.isExtendable) {
+    //                         remaindDist.push(task.min);
+    //                     } else {
+    //                         remaindDist.push(0);
+    //                     }
+    //                 })
+    //                 remaindDist = this.distributeArrByRatio(minutes, remaindDist);
+    //             } else {
+    //                 remaindDist = this.distributeArrByRatio(minutes, minMinutesList);
+    //             }
+    //         }
+    //         result = this.addEveryElem(result, remaindDist);
+
+    //     // 最小時間の分配も不可能な場合
+    //     } else {
+    //         // isRequred === trueだけに分配
+    //         let remaindDist: number[] = [];
+    //         this.tasks.forEach(task => {
+    //             if (!task.isRequired) {
+    //                 remaindDist.push(0);
+    //             } else {
+    //                 remaindDist.push(task.min);
+    //             }
+    //         })
+    //         // 稼働可能時間を超えなければ残りをminの比で分配
+    //         if (this.listSum(remaindDist) <= this.activeTime) {
+    //             result = [...remaindDist];
+    //             minutes -= this.listSum(result);
+    //             remaindDist = [];
+    //             this.tasks.forEach(task => {
+    //                 if (!task.isRequired) {
+    //                     remaindDist.push(task.min);
+    //                 } else {
+    //                     remaindDist.push(0);
+    //                 }
+    //             })
+    //             remaindDist = this.distributeArrByRatio(minutes, remaindDist);
+    //             result =  this.addEveryElem(result, remaindDist);
+    //         // それでも稼働可能時間を超える場合はすべてをminの比で分配
+    //         } else {
+    //             result = this.distributeArrByRatio(this.activeTime, minMinutesList);
+    //         }
+    //     }
+    //     return result;
+    // }
+    // //////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////
 
 
-        // 時刻の割り当て
-        const allocationPatterns: Array< [Array<[Time, Time, number]>, number] > = [];  // 各要素は[割り当て時刻と対応するタスクインデックス(休憩は-1), 理想値とのずれ]となっている
-        // 順番通りに割り当てる場合
-        if (schedulingByOrder) {
-            // 順番配列の作成
-            let order: number[] = [];
-            for (let i=0; i<this.tasks.length; i++) {
-                order.push(-1);
-            }
-            this.tasks.forEach((task, index) => {
-                order[task.order] = index;
-            })
-            // 割り当てと結果の格納
-            let allocationResult: [Array<[Time, Time, number]>, number[]] = this.descideTimeAllocation(minutesAllocation, order);
-            result = allocationResult[0];
-            return result;
 
 
-        // 順番が指定されていない場合
-        } else {
-            this.getOrderPattern(100).forEach(order => {
-                let allocationResult: [Array<[Time, Time, number]>, number[]] = this.descideTimeAllocation(minutesAllocation, order);
-                allocationPatterns.push([allocationResult[0], this.distanceFromIdeal(minutesAllocation, allocationResult[1])]);
-            })
 
-            result = allocationPatterns[0][0];
-            let minDistance = allocationPatterns[0][1];
-            allocationPatterns.forEach(allocationPattern => {
-                if (minDistance > allocationPattern[1]) {
-                    minDistance = allocationPattern[1];
-                    result = allocationPattern[0];
-                }
-            })
-            return result;
-        }
-    }
-    //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////
+
+    // //////////////////////////////////////////////////////////////////////////////
+    // // allocator
+    // //////////////////////////////////////////////////////////////////////////////
+    // // 理想的な時間配分に対して実際の時間配分のずれを計算する関数
+    // distanceFromIdeal(ideal: Array<number>, actual: Array<number>): number {
+    //     let result = 0;
+    //     ideal.forEach((idealVal, index) => {
+    //         let actualVal = actual[index];
+    //         result += Math.abs(actualVal - idealVal);
+    //     })
+    //     return result;
+    // }
+
+    // // 実際に時間を割り当てる関数
+    // allocateTasks(schedulingByOrder: boolean): Array<[Time, Time, number]> {
+    //     let result: Array<[Time, Time, number]>;
+    //     // 分単位の割り当てを決定
+    //     const minutesAllocation: number[] = this.descideMinAllocation();
+
+
+    //     // 時刻の割り当て
+    //     const allocationPatterns: Array< [Array<[Time, Time, number]>, number] > = [];  // 各要素は[割り当て時刻と対応するタスクインデックス(休憩は-1), 理想値とのずれ]となっている
+    //     // 順番通りに割り当てる場合
+    //     if (schedulingByOrder) {
+    //         // 順番配列の作成
+    //         let order: number[] = [];
+    //         for (let i=0; i<this.tasks.length; i++) {
+    //             order.push(-1);
+    //         }
+    //         this.tasks.forEach((task, index) => {
+    //             order[task.order] = index;
+    //         })
+    //         // 割り当てと結果の格納
+    //         let allocationResult: [Array<[Time, Time, number]>, number[]] = this.descideTimeAllocation(minutesAllocation, order);
+    //         result = allocationResult[0];
+    //         return result;
+
+
+    //     // 順番が指定されていない場合
+    //     } else {
+    //         this.getOrderPattern(100).forEach(order => {
+    //             let allocationResult: [Array<[Time, Time, number]>, number[]] = this.descideTimeAllocation(minutesAllocation, order);
+    //             allocationPatterns.push([allocationResult[0], this.distanceFromIdeal(minutesAllocation, allocationResult[1])]);
+    //         })
+
+    //         result = allocationPatterns[0][0];
+    //         let minDistance = allocationPatterns[0][1];
+    //         allocationPatterns.forEach(allocationPattern => {
+    //             if (minDistance > allocationPattern[1]) {
+    //                 minDistance = allocationPattern[1];
+    //                 result = allocationPattern[0];
+    //             }
+    //         })
+    //         return result;
+    //     }
+    // }
+    // //////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////
 }

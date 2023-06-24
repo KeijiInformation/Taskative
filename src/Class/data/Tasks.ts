@@ -171,6 +171,14 @@ export default class Tasks {
         }
         return undefined;
     }
+
+    getSumValue(target: "max" | "min"): number {
+        let result: number = 0;
+        this.data.forEach(task => {
+            result += task[target];
+        })
+        return result;
+    }
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
@@ -252,6 +260,38 @@ export default class Tasks {
         targetTask.order = lowerOrder;
         this.upload();
         return true;
+    }
+    /////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+    /////////////////////////////////////////////////////////////////////
+    // boolean
+    /////////////////////////////////////////////////////////////////////
+    // isExtendableが含まれているかを判定する関数
+    hasExtendable(): boolean {
+        let result: boolean = false;
+        this.data.forEach(task => {
+            if (task.isExtendable) {
+                result = true;
+            }
+        })
+        return result;
+    }
+    // isRequiredが含まれているかを判定する関数
+    hasRequired(): boolean {
+        let result: boolean = false;
+        this.data.forEach(task => {
+            if (task.isRequired) {
+                result = true;
+            }
+        })
+        return result;
     }
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////

@@ -1,3 +1,5 @@
+import Time from "./Time";
+
 interface TaskObject {
     uid:        string;
     id:         number;
@@ -14,16 +16,16 @@ interface TaskObject {
 
 
 export default class Task {
-    uid:          string
-    id:           number
-    title:        string
-    max:          number
-    min:          number
-    isRequired:   boolean
-    registered:   [number, number, number]
-    deleted:      [boolean, number, number, number]
-    order:        number
-    isExtendable: boolean
+    uid:          string;
+    id:           number;
+    title:        string;
+    max:          number;
+    min:          number;
+    isRequired:   boolean;
+    registered:   [number, number, number];
+    deleted:      [boolean, number, number, number];
+    order:        number;
+    isExtendable: boolean;
 
     constructor(uid: string, id: number, title: string, max: number, min: number, isRequired: boolean, registered: [number, number, number], deleted: [boolean, number, number, number], order: number, isExtendable: boolean) {
         this.uid          = uid;

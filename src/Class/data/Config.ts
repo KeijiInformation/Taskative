@@ -7,6 +7,7 @@ export default class Config {
     deleted:           [boolean, number, number, number];
     idRange:           [number, number];
     schedulingByOrder: boolean;
+    timeStep: number
     upload:            ((config: Config) => boolean) | undefined;
     constructor() {
         this.uid               = "";
@@ -15,16 +16,18 @@ export default class Config {
         this.deleted           = [false, -1, -1, -1];
         this.idRange           = [0, -1];
         this.schedulingByOrder = false;
+        this.timeStep          = -1;
         this.upload            = undefined;
     }
 
-    initParams(uid: string, name: string, registered: [number, number, number], deleted: [boolean, number, number, number], idRange: [number, number], schedulingByOrder: boolean, uploadFunc?: (config: Config) => boolean) {
+    initParams(uid: string, name: string, registered: [number, number, number], deleted: [boolean, number, number, number], idRange: [number, number], schedulingByOrder: boolean, timeStep: number, uploadFunc?: (config: Config) => boolean) {
         this.uid               = uid;
         this.name              = name;
         this.registered        = registered;
         this.deleted           = deleted;
         this.idRange           = idRange;
         this.schedulingByOrder = schedulingByOrder;
+        this.timeStep          = timeStep;
         this.upload            = uploadFunc;
     }
 
@@ -50,6 +53,7 @@ export default class Config {
             deleted           : this.deleted,
             idRange           : this.idRange,
             schedulingByOrder : this.schedulingByOrder,
+            timeStep          : this.timeStep,
         }
     }
 }

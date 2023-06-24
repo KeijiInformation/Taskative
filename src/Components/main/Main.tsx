@@ -46,6 +46,7 @@ export default function Main(props: Props) {
     const [startTime, setStartTime] = useState<Time>(() => {
         const now: Time = new Time();
         now.setFromNow();
+        now.ceilToJustTime(userData.config.timeStep);
         now.basis = now.copy();
         return now;
     })
@@ -54,6 +55,7 @@ export default function Main(props: Props) {
             setStartTime(() => {
                 const now: Time = new Time();
                 now.setFromNow();
+                now.ceilToJustTime(userData.config.timeStep);
                 now.basis = now.copy();
                 return now;
             })
@@ -128,11 +130,9 @@ export default function Main(props: Props) {
     /////////////////////////////////////////////////////////////////////
     useEffect(() => {
         if (contentsID === 2) {
-            const timeAllocater: TimeAllocater = new TimeAllocater(startTime, endTime, breakTime, tasks.data);
-            const allocateResult: Array< [Time, Time, number] > = timeAllocater.allocateTasks(false);
-            allocateResult.sort((a, b) => {
-                return a[0].compareTo(b[0]);
-            })
+            const timeAllocater: TimeAllocater = new TimeAllocater(startTime, endTime, breakTime, tasks, userData.config.timeStep);
+            const allocateResult: Array< [Time, Time, number] > = timeAllocater.allocate(false);
+            console.log(allocateResult);
             // データの作成
             let onDate = new Date();
             const createdData: Array<[[number, number, number, number, number], [number, number, number, number, number], number]> = [];
@@ -148,7 +148,7 @@ export default function Main(props: Props) {
                 onDate.setDate( onDate.getDate() + dateDifference );
                 newData[1] = [onDate.getFullYear(), onDate.getMonth()+1, onDate.getDate(), elem[1].hours, elem[1].minutes];
                 if (elem[2] !== -1) {
-                    newData[2] = tasks.data[elem[2]].id;
+                    newData[2] = elem[2];
                 } else {
                     newData[2] = -1;
                 }
@@ -161,7 +161,11 @@ export default function Main(props: Props) {
             createdData.forEach((section, index) => {
                 userData.contemporary.add(section, index);
             })
+            const basis: Time = new Time();
+            basis.setFromNow();
+            basis.basis = basis.copy();
             userData.contemporary.onSection = 0;
+            userData.contemporary.basis     = [basis.hours, basis.minutes];
             userData.contemporary.upload();
         }
     }, [contentsID])
@@ -182,7 +186,6 @@ export default function Main(props: Props) {
         setEndTime(new Time());
         setBreakTime([]);
         setonSection(0);
-        console.log();
         setTasks(userData.tasks.copy());
     }
     /////////////////////////////////////////////////////////////////////

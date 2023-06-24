@@ -24,7 +24,7 @@ export default class UserData {
             this.isSet = true;
             this.user = undefined;
             this.config = new Config();
-            this.config.initParams("debug", "デバッグユーザー", [2023, 5, 25], [false, -1, -1, -1], [0, 5], false);
+            this.config.initParams("debug", "デバッグユーザー", [2023, 5, 25], [false, -1, -1, -1], [0, 5], false, 5);
 
             const taskList: Task[] = [
                 new Task(this.config.uid, -1, "休憩",            0, 0, false,  [2023, 5, 25], [false, 0, 0, 0], 0, false),
@@ -94,6 +94,7 @@ export default class UserData {
                 data.deleted,
                 data.idRange,
                 data.schedulingByOrder,
+                data.timeStep,
                 this.uploadConfig,
             )
         }

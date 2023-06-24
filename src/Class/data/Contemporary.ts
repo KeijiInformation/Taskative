@@ -3,10 +3,12 @@ import Time from "../Time";
 export default class Contemporary {
     data: Array<[[number, number, number, number, number], [number, number, number, number, number], number]>;
     onSection: number;
+    basis: [number, number]
     uploadFunc: ((contemporary: Contemporary) => boolean) | undefined;
     constructor(uploadFunc?: (contemporary: Contemporary) => boolean) {
         this.data = [];
         this.onSection = -1;
+        this.basis = [-1, -1];
         this.uploadFunc = uploadFunc;
     }
 
@@ -40,7 +42,7 @@ export default class Contemporary {
     }
 
     getDataAsObject(): Object {
-        let result: Object = {onSection: this.onSection};
+        let result: Object = {onSection: this.onSection, basis: this.basis};
         this.data.forEach((section, index) => {
             const newDict: {[order: string]: [number, number, number, number, number] | number} = {};
             const startKey: string = index + "_start";

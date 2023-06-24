@@ -122,7 +122,6 @@ export default class Time {
     differFrom(time: Time): Time {
         const fromTimeVal: Time = time.getTimeValue();
         const toTimeVal:   Time = this.getTimeValue();
-        // console.log(`timeVal: from(${time.getTimeStr()}=${fromTimeVal.getTimeStr()}), to(${this.getTimeStr()}=${toTimeVal.getTimeStr()})`);
         let hours: number = toTimeVal.hours - fromTimeVal.hours;
         let minutes: number = toTimeVal.minutes - fromTimeVal.minutes;
         if (hours < 0 && minutes > 0) {
@@ -134,6 +133,26 @@ export default class Time {
         }
         return new Time(hours, minutes, this.basis);
     }
+    // 時間をきりの良い数値に切り捨てる関数
+    // 戻り値＝切り捨てた分の数値( <= 0)
+    floorToJustTime(timeStep: number): number {
+        let result = 0;
+        while (this.minutes % timeStep !== 0) {
+            this.minutes--;
+            result--;
+        }
+        return result;
+    }
+    // 時間をきりの良い数値に切り上げる関数
+    // 戻り値＝きり上げた分の数値( >= 0)
+    ceilToJustTime(timeStep: number): number {
+        let result = 0;
+        while (this.minutes % timeStep !== 0) {
+            this.minutes++;
+            result++;
+        }
+        return result;
+    }
     ////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////
@@ -144,7 +163,7 @@ export default class Time {
 
 
     ////////////////////////////////////////////////////////
-    // compare
+    // bool
     ////////////////////////////////////////////////////////
     compareTo(time: Time): 1 | 0 | -1 {
         const difference: Time = this.differFrom(time);
@@ -156,6 +175,9 @@ export default class Time {
         } else {
             return 0;
         }
+    }
+    isJust(timeStep: number): boolean {
+        return this.minutes % timeStep === 0;
     }
     ////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////
