@@ -65,7 +65,7 @@ export default function MainInput(props: Props) {
         }
         // start is near scheduleStart time
         const minLimit: Time = new Time(props.startTime.hours, props.startTime.minutes, props.startTime);
-        minLimit.add(15);
+        minLimit.add(userData.config.timeStep + 5);
         if (time.differFrom(minLimit).getValueAsMin() <= 0) {
             setBreakTimeInputError([false, `開始時間${props.startTime.getTimeStr()}に近すぎます。${minLimit.getTimeStr()}以降の時間を入力してください。`]);
             return false;
@@ -73,7 +73,7 @@ export default function MainInput(props: Props) {
         // start is near other break
         let result = true;
         props.breakTime.forEach((breaktime, index) => {
-            if (Math.abs(time.differFrom(breaktime[1]).getValueAsMin()) <= 5 && index !== targetIndex) {
+            if (Math.abs(time.differFrom(breaktime[1]).getValueAsMin()) <= userData.config.timeStep + 5 && index !== targetIndex) {
                 setBreakTimeInputError([false, `他の休憩時間${breaktime[1].getTimeStr()}から5分以上間隔を空けてください。`]);
                 result = false;
             }
@@ -117,7 +117,7 @@ export default function MainInput(props: Props) {
         }
         // end is near shceduleEnd
         const maxLimit: Time = new Time(props.endTime.hours, props.endTime.minutes, props.startTime);
-        maxLimit.add(-15);
+        maxLimit.add(-(userData.config.timeStep + 5));
         if (endbreak.differFrom(maxLimit).getValueAsMin() >= 0) {
             setBreakTimeInputError([false, `終了時間${props.endTime.getTimeStr()}に近すぎます。${maxLimit.getTimeStr()}より前の時間を入力してください。`])
             return false;
@@ -125,7 +125,7 @@ export default function MainInput(props: Props) {
         // end is near other break
         result = true;
         props.breakTime.forEach((breaktime, index) => {
-            if (Math.abs(endbreak.differFrom(breaktime[0]).getValueAsMin()) <= 5 && index !== targetIndex) {
+            if (Math.abs(endbreak.differFrom(breaktime[0]).getValueAsMin()) <= userData.config.timeStep + 5 && index !== targetIndex) {
                 setBreakTimeInputError([false, `他の休憩時間${breaktime[0].getTimeStr()}から5分以上間隔を空けてください。`]);
                 result = false;
             }

@@ -6,18 +6,18 @@ import { Tasks } from "./data";
 
 // Tasksクラスを時間分配用に拡張
 class AllocateTask extends Task {
-    timeRange: [Time, Time] | undefined;
+    timeRange: Array<[Time, Time]>;
     minAllocate: number;
     diffFromIdeal: number;
     constructor(task: Task) {
         super(task.uid, task.id, task.title, task.max, task.min, task.isRequired, task.registered, task.deleted, task.order, task.isExtendable);
-        this.timeRange = undefined;
+        this.timeRange = [];
         this.minAllocate = -1;
         this.diffFromIdeal = 0;
     }
-    setTimeRange(start: Time, end: Time): boolean {
+    addTimeRange(start: Time, end: Time): boolean {
         if (start.isSet() && end.isSet() && end.compareTo(start) >= 0) {
-            this.timeRange = [start, end];
+            this.timeRange.push([start.copy(), end.copy()]);
             return true;
         } else {
             return false;
@@ -26,9 +26,9 @@ class AllocateTask extends Task {
     copy(): AllocateTask {
         const taskCopy: Task = super.copy();
         const result: AllocateTask = new AllocateTask(taskCopy);
-        if (this.timeRange) {
-            result.setTimeRange(this.timeRange[0], this.timeRange[1]);
-        }
+        this.timeRange.forEach(section => {
+            result.addTimeRange(section[0].copy(), section[1].copy());
+        })
         result.minAllocate  = this.minAllocate;
         result.diffFromIdeal = this.diffFromIdeal;
         return result;
@@ -48,6 +48,7 @@ class AllocateTasks extends Tasks {
     add(task: AllocateTask) {
         super.add(task);
     }
+    // minAllocateが残っているAllocateTaskインスタンスのうち始めのものを取得する関数
     getFirstTaskHasMin(): AllocateTask | undefined {
         for (let task of this.data) {
             if (task.minAllocate > 0) {
@@ -56,6 +57,7 @@ class AllocateTasks extends Tasks {
         }
         return undefined;
     }
+    // パターン(インデックスの配列で与えられる)によってAllocateTasksの配列を並び替える関数
     sortByPattern(pattern: number[]): void {
         const newData: AllocateTask[] = [];
         pattern.forEach(index => {
@@ -63,13 +65,18 @@ class AllocateTasks extends Tasks {
         })
         this.data = newData;
     }
-    sortByTimeRange(): void {
-        this.data.sort((a, b) => {
-            if (a.timeRange && b.timeRange) {
-                return a.timeRange[0].compareTo(b.timeRange[0]);
-            }
-            return 0;
+    // 現在のtimeRangeのデータから実際に使用するデータの形を作成する関数
+    createSectionsData(): Array<[Time, Time, number]> {
+        const result: Array<[Time, Time, number]> = [];
+        this.data.forEach(task => {
+            task.timeRange.forEach(section => {
+                result.push([section[0], section[1], task.id]);
+            })
         })
+        result.sort((a, b) => {
+            return a[0].compareTo(b[0]);
+        })
+        return result;
     }
     copy(): AllocateTasks {
         const result: AllocateTasks = new AllocateTasks();
@@ -85,7 +92,7 @@ class AllocateTasks extends Tasks {
 export default class TimeAllocater {
     start: Time;
     end: Time;
-    breakTasks: AllocateTasks;
+    breakTask: AllocateTask;
     tasks: AllocateTasks;
     numOfMaxPatterns: number;
     activeTime: number;
@@ -93,11 +100,9 @@ export default class TimeAllocater {
     constructor(start: Time, end: Time, breakTimes: Array<[Time, Time]>, tasks: Tasks, timeStep: number) {
         this.start = start;
         this.end   = end;
-        this.breakTasks = new AllocateTasks();
-        breakTimes.forEach(breakTime => {
-            const allocateTask: AllocateTask = new AllocateTask(new Task(tasks.data[0].uid, -1, "休憩", -1, -1, true, [-1, -1, -1], [false, -1, -1, -1], -1, false));
-            allocateTask.setTimeRange(breakTime[0], breakTime[1]);
-            this.breakTasks.add(allocateTask);
+        this.breakTask = new AllocateTask(new Task(tasks.data[0].uid, -1, "休憩", -1, -1, true, [-1, -1, -1], [false, -1, -1, -1], -1, false));
+        breakTimes.forEach(breaksection => {
+            this.breakTask.addTimeRange(breaksection[0], breaksection[1]);
         })
         this.tasks = new AllocateTasks(tasks.copy());
         tasks.sortByOrder(true);
@@ -122,10 +127,8 @@ export default class TimeAllocater {
         result += this.end.differFrom(this.start).getValueAsMin();
         // breaktimesの時間(min)
         let breaktimeAsMin = 0;
-        this.breakTasks.data.forEach(breakTask => {
-            if (breakTask.timeRange) {
-                breaktimeAsMin += breakTask.timeRange[1].differFrom(breakTask.timeRange[0]).getValueAsMin();
-            }
+        this.breakTask.timeRange.forEach(breaksection => {
+            breaktimeAsMin += this.getSectionMin(breaksection);
         })
         result -= breaktimeAsMin;
         return result;
@@ -387,12 +390,10 @@ export default class TimeAllocater {
     createTimeSection(): Array<[Time, Time, number]> {
         const result: Array<[Time, Time, number]> = [];
         let onTime: Time = this.start;
-        this.breakTasks.data.forEach(breakTask => {
-            if (breakTask.timeRange) {
-                result.push([onTime.copy(), breakTask.timeRange[0].copy(), 0]);
-                result.push([breakTask.timeRange[0].copy(), breakTask.timeRange[1].copy(), -1]);
-                onTime = breakTask.timeRange[1];
-            }
+        this.breakTask.timeRange.forEach(breaksection => {
+            result.push([onTime.copy(), breaksection[0].copy(), 0]);
+            result.push([breaksection[0].copy(), breaksection[1].copy(), -1]);
+            onTime = breaksection[1];
         })
         result.push([onTime.copy(), this.end.copy(), 0]);
         return result;
@@ -419,16 +420,16 @@ export default class TimeAllocater {
             let taskStart: Time = section[0].copy();
             let taskEnd:   Time = section[0].copy();
             taskEnd.add(task.minAllocate);
-            task.timeRange = [taskStart, taskEnd];
+            task.addTimeRange(taskStart, taskEnd);
             task.minAllocate = 0;
             // 残りが(timeStep + 5)分未満ならばsectionの終わりまで割り当て
             if (this.getSectionMin([taskEnd, section[1]]) < this.timeStep + 5) {
-                task.timeRange = [taskStart, section[1].copy()];
+                task.addTimeRange(taskStart, section[1].copy());
                 task.diffFromIdeal += this.getSectionMin([taskEnd, section[1]]);
             }
         // 割り当てるとオーバーする場合
         } else {
-            task.timeRange = [section[0].copy(), section[1].copy()];
+            task.addTimeRange(section[0].copy(), section[1].copy());
             task.minAllocate -= this.getSectionMin(section);
             // タスクに残された分配がtimeStep以下なら切り捨て
             if (task.minAllocate <= this.timeStep) {
@@ -458,7 +459,7 @@ export default class TimeAllocater {
                     if (onTask) {
                         this.descideTaskTime(onTask, [onTime, section[1]]);
                         if (onTask.timeRange) {
-                            onTime = onTask.timeRange[1];
+                            onTime = onTask.timeRange[onTask.timeRange.length-1][1];
                             sectionMin = this.getSectionMin([onTime, section[1]]);
                         }
                     } else {
@@ -467,12 +468,7 @@ export default class TimeAllocater {
                 }
             }
         })
-        // breaktimesの格納
-        this.breakTasks.data.forEach(breakTask => {
-            tasks.add(breakTask.copy());
-        })
-        // sort
-        tasks.sortByTimeRange();
+        tasks.add(this.breakTask.copy());
         return tasks;
     }
     //////////////////////////////////////////////////////////////////////////////
@@ -529,13 +525,7 @@ export default class TimeAllocater {
             }
         })
         // 決定されたパターンから結果配列を作成
-        const result: Array<[Time, Time, number]> = []
-        idealTasksPattern.data.forEach(task => {
-            if (task.timeRange) {
-                result.push([task.timeRange[0].copy(), task.timeRange[1].copy(), task.id]);
-            }
-        })
-        return result;
+        return idealTasksPattern.createSectionsData();
     }
     //////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
