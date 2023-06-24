@@ -24,6 +24,7 @@ export default class Contemporary {
     delete() {
         this.data = [];
         this.onSection = -1;
+        this.basis     = [-1, -1];
         this.upload();
     }
 

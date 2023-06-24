@@ -163,7 +163,6 @@ export default function Main(props: Props) {
             })
             const basis: Time = new Time();
             basis.setFromNow();
-            basis.basis = basis.copy();
             userData.contemporary.onSection = 0;
             userData.contemporary.basis     = [basis.hours, basis.minutes];
             userData.contemporary.upload();
