@@ -9,21 +9,36 @@
     &__tasks-list {
         display: flex;
         flex-direction: column;
-        gap: 4px;
         align-items: start;
-        &--li {
-            display: flex;
-            align-items: center;
+        @include Media.mobile() {
             gap: 4px;
+        }
+        &--li {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
             color: Color.$font-black;
             font-size: Size.fontSize(12);
             position: relative;
+            border-bottom: 1px solid Color.$font-black;
+            padding: 4px;
             @include Media.mobile() {
+                flex-direction: row;
+                gap: 4px;
                 color: Color.$font-white;
+                padding: 0;
             }
             &.onsection {
                 font-weight: bold;
-                border-bottom: 1px solid Color.$font-black;
+            }
+            .time-box .delimiter {
+                display: none;
+                @include Media.mobile() {
+                    margin-right: 4px;
+                    display: inline;
+                }
             }
         }
     }

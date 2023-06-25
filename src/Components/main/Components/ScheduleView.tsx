@@ -35,9 +35,7 @@ export default function ScheduleView(props: Props) {
                     const end:   Time = new Time(data[1][3], data[1][4]);
                     return (
                         <>
-                        {index === props.onSectionIndex
-                        ?
-                            <li className="schedule-view-wrapper__tasks-list--li onsection" key={"schedule-view-wrapper__tasks-list--li$key=" + index}>
+                            <li className={`schedule-view-wrapper__tasks-list--li ${index===props.onSectionIndex && "onsection"}`} key={"schedule-view-wrapper__tasks-list--li$key=" + index}>
                                 <div className="time-box">
                                     <span className="start">{start.getTimeStr()}</span>
                                     <span className="middle">～</span>
@@ -51,22 +49,6 @@ export default function ScheduleView(props: Props) {
                                     <p className="title">休憩</p>
                                 }
                             </li>
-                        :
-                            <li className="schedule-view-wrapper__tasks-list--li" key={"schedule-view-wrapper__tasks-list--li$key=" + index}>
-                                <div className="time-box">
-                                    <span className="start">{start.getTimeStr()}</span>
-                                    <span className="middle">～</span>
-                                    <span className="end">{end.getTimeStr()}</span>
-                                    <span className="delimiter">:</span>
-                                </div>
-                                {data[2] !== -1
-                                ?
-                                    <p className="title">{userData.tasks.getTaskByID(data[2])?.title}</p>
-                                :
-                                    <p className="title">休憩</p>
-                                }
-                            </li>
-                        }
                         </>
                     )
                 })}

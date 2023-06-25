@@ -276,7 +276,7 @@ export default class TimeAllocater {
     // 各タスクの分単位の分配を決定
     //////////////////////////////////////////////////////////////////////////////
     // 最大時間の合計がactiveTimeを超えない場合
-    // maxSumの割合で分配した後isExtendableで分配
+    // maxSumをmaxの割合で分配した後isExtendableで分配
     // isExtendableがなければmaxで分配
     createMinDistributionByMax(maxSum: number): void {
         // 最大時間で分配
@@ -311,7 +311,7 @@ export default class TimeAllocater {
 
 
     // 最小時間の合計がactiveTimeを超えない場合
-    // minSumの割合で分配した後maxの割合で分配
+    // minSumをminの割合で分配した後maxの割合で分配
     createMinDistributionByMin(minSum: number): void {
         // 最大時間で分配
         let ratioSample: number[] = [];
