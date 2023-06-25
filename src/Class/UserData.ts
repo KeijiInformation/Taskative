@@ -126,6 +126,7 @@ export default class UserData {
         if (data) {
             if (data["onSection"] !== -1) {
                 this.contemporary.onSection = data["onSection"];
+                this.contemporary.basis     = data["basis"];
                 Object.keys(data).forEach(sectionID => {
                     if (sectionID !== "onSection") {
                         const idVals: [number, string] = [Number(sectionID.split("_")[0]), sectionID.split("_")[1]];

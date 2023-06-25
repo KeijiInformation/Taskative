@@ -40,7 +40,7 @@ export default function MainRunning(props: Props) {
     const [startTime, setstartTime] = useState<Time>(new Time(props.allocateData[props.onSection][0][3], props.allocateData[props.onSection][0][4], basis));
     const [endTime, setendTime] = useState<Time>(new Time(props.allocateData[props.onSection][1][3], props.allocateData[props.onSection][1][4], basis));
     useEffect(() => {
-        setbasis(new Time(props.allocateData[0][0][3], props.allocateData[0][0][4]));
+        setbasis(new Time(userData.contemporary.basis[0], userData.contemporary.basis[1]));
     }, [props.allocateData])
     useEffect(() => {
         setstartTime(new Time(props.allocateData[props.onSection][0][3], props.allocateData[props.onSection][0][4], basis));
@@ -85,15 +85,17 @@ export default function MainRunning(props: Props) {
         on.basis = basis;
         return on;
     });
-    setInterval(() => {
-        const on: Time = new Time();
-        on.setFromNow();
-        on.basis = basis;
-        if (on.minutes !== onTime.minutes) {
-            setOnTime(on);
-        }
-        return on;
-    }, 1000)
+    useEffect(() => {
+        setInterval(() => {
+            const on: Time = new Time();
+            on.setFromNow();
+            on.basis = basis;
+            if (on.minutes !== onTime.minutes) {
+                setOnTime(on);
+            }
+            return on;
+        }, 1000)
+    }, [])
     //////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////
@@ -111,6 +113,7 @@ export default function MainRunning(props: Props) {
     useEffect(() => {
         const lastTime: Time = new Time(props.allocateData[props.allocateData.length-1][1][3], props.allocateData[props.allocateData.length-1][1][4], basis);
         if (lastTime.compareTo(onTime) >= 0) {
+            // console.log(`basis:${basis.getTimeStr()}, on:${onTime.getTimeValue().getValueAsMin()}, last:${lastTime.getTimeValue().getValueAsMin()}`);
             setachievedVal(Math.floor(100 * onTime.getTimeValue().getValueAsMin() / lastTime.getTimeValue().getValueAsMin()));
         } else {
             setachievedVal(100);

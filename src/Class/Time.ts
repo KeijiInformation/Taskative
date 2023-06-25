@@ -151,6 +151,13 @@ export default class Time {
             this.minutes++;
             result++;
         }
+        if (this.minutes === 60) {
+            this.minutes = 0;
+            this.hours++;
+            if (this.hours === 24) {
+                this.hours = 0;
+            }
+        }
         return result;
     }
     ////////////////////////////////////////////////////////

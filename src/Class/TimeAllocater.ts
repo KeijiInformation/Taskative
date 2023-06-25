@@ -107,7 +107,6 @@ export default class TimeAllocater {
         this.tasks = new AllocateTasks(tasks.copy());
         tasks.sortByOrder(true);
         this.numOfMaxPatterns = 1;
-        for (let i=1; i<=tasks.data.length; i++) this.numOfMaxPatterns *= i;
         this.activeTime = this.calcActiveTime();
         this.timeStep = timeStep;
     }
@@ -238,7 +237,6 @@ export default class TimeAllocater {
         for (let i=0; i<this.tasks.data.length; i++) {
             sampleModel.push(i);
         }
-
         // 生成(乱数によってランダムに2つの位置を入れ替えて生成する)
         const resultArr: Array< number[] > = [[...sampleModel]];
         let pattern: Array<number>;
@@ -498,6 +496,10 @@ export default class TimeAllocater {
     allocate(schedulingByOrder: boolean): Array<[Time, Time, number]> {
         // 分単位の分配
         this.descideMinDistribution();
+        // 最大パターン数の計算
+        for (let i=1; i<=this.tasks.data.length; i++) {
+            this.numOfMaxPatterns *= i
+        }
         // パターンの作成
         let patterns: Array<number[]>;
         if (schedulingByOrder) {
@@ -508,9 +510,9 @@ export default class TimeAllocater {
         } else {
             patterns = this.getOrderPattern(100);
         }
+        // パターンの検証
         let idealPatternDiff:  number;
         let idealTasksPattern: AllocateTasks = new AllocateTasks();
-        // パターンの検証
         patterns.forEach((pattern, index) => {
             const allocateTasks: AllocateTasks = this.descideTimeAllocationByPattern(pattern);
             if (index === 0) {

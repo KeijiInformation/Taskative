@@ -132,7 +132,7 @@ export default function Main(props: Props) {
         if (contentsID === 2) {
             const timeAllocater: TimeAllocater = new TimeAllocater(startTime, endTime, breakTime, tasks, userData.config.timeStep);
             const allocateResult: Array< [Time, Time, number] > = timeAllocater.allocate(false);
-            // データの作成
+            // 日付けデータの付与
             let onDate = new Date();
             const createdData: Array<[[number, number, number, number, number], [number, number, number, number, number], number]> = [];
             allocateResult.forEach(elem => {
