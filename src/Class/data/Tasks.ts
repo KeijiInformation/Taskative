@@ -163,6 +163,34 @@ export default class Tasks {
         }
         return undefined;
     }
+    getHeigherOrder(order: number): Task | undefined {
+        let result: Task | undefined = undefined;
+        let onOrder: number          = order - 1;
+        const orderLimit: number     = 0;
+        while (onOrder >= orderLimit) {
+            const getTask: Task | undefined = this.getTaskByOrder(onOrder);
+            if (getTask) {
+                result = getTask;
+                break;
+            }
+            onOrder--;
+        }
+        return result;
+    }
+    getLowerOrder(order: number): Task | undefined {
+        let result: Task | undefined = undefined;
+        let onOrder: number          = order + 1;
+        const orderLimit: number     = this.getMaxOrder();
+        while (onOrder <= orderLimit) {
+            const getTask: Task | undefined = this.getTaskByOrder(onOrder);
+            if (getTask) {
+                result = getTask;
+                break;
+            }
+            onOrder++;
+        }
+        return result;
+    }
     getTaskByOrder(order: number): Task | undefined {
         for (let task of this.data) {
             if (task.order === order) {
@@ -237,7 +265,7 @@ export default class Tasks {
     // change order
     /////////////////////////////////////////////////////////////////////
     upOrder(targetTask: Task): boolean {
-        const higherTask: Task | undefined = this.getTaskByOrder(targetTask.order-1);
+        const higherTask: Task | undefined = this.getHeigherOrder(targetTask.order);
         if (!higherTask) {
             return false;
         }
@@ -251,7 +279,7 @@ export default class Tasks {
 
 
     downOrder(targetTask: Task): boolean {
-        const lowerTask: Task | undefined = this.getTaskByOrder(targetTask.order+1);
+        const lowerTask: Task | undefined = this.getLowerOrder(targetTask.order);
         if (targetTask.order <= 0 || !lowerTask) {
             return false;
         }
