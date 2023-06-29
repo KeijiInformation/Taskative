@@ -1,6 +1,6 @@
 import { DocumentData, DocumentReference, doc, getDoc, or, setDoc } from "firebase/firestore";
 import Task from "./Task";
-import { Config, Tasks } from "./data";
+import { Config, Result, Tasks } from "./data";
 import { db } from "../firebase";
 import { User } from "firebase/auth";
 import Contemporary from "./data/Contemporary";
@@ -158,9 +158,17 @@ export default class UserData {
         setDoc(docRef, config.getDataAsObject());
         return true;
     }
-    uploadContemporary(contemporary: Contemporary, uid: string) {
+    uploadContemporary(contemporary: Contemporary, uid: string): boolean {
         const docRef = doc(db, "Contemporary", uid);
         setDoc(docRef, contemporary.getDataAsObject());
+        return true;
+    }
+    uploadResult(result: Result, uid: string): boolean {
+        const data: Array< {[key: string]: [number, number] | number | string} > = result.getDataAsObjects();
+        data.forEach(elem => {
+            const docRef = doc(db, "Result", `${uid}_${elem["id"]}`);
+            setDoc(docRef, elem);
+        })
         return true;
     }
     ////////////////////////////////////////////////////////////////////
