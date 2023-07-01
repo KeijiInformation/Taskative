@@ -1,6 +1,6 @@
 import { CSSTransition } from "react-transition-group";
 import { useState, useEffect, useContext } from 'react';
-import { MainInput, MainTop, MainRunning } from "./Components";
+import { MainInput, MainTop, MainRunning, AllocateCanditateList } from "./Components";
 import { Time, TimeAllocater } from "../../Class";
 import "../../styles/Components/main/Main.scss";
 import { UserDataContext } from "../../App";
@@ -83,6 +83,7 @@ export default function Main(props: Props) {
             return userData.contemporary.onSection;
         }
     })
+    const [allocateDataCanditate, setallocateDataCanditate] = useState< Array<Array<[[number, number, number, number, number], [number, number, number, number, number], number]>> >([]);
     const [allocateData, setAllocateData] = useState< Array<[[number, number, number, number, number], [number, number, number, number, number], number]> >(() => {
         if (userData.contemporary.onSection < 0) {
             return [];
@@ -90,8 +91,26 @@ export default function Main(props: Props) {
             return userData.contemporary.data;
         }
     });
+    function descideAllocate(index: number) {
+        const target: Array<[[number, number, number, number, number], [number, number, number, number, number], number]> = allocateDataCanditate[index];
+        setAllocateData(target);
+        // Contemporaryへの提出
+        target.forEach((section, index) => {
+            userData.contemporary.add(section, index);
+        })
+        const basis: Time = new Time();
+        basis.setFromNow();
+        userData.contemporary.onSection = 0;
+        userData.contemporary.basis     = [basis.hours, basis.minutes];
+        userData.contemporary.upload();
+    }
     useEffect(() => {
         if (allocateData.length !== 0) {
+            const today: Date = new Date();
+            const onTime: Time = new Time();
+            onTime.setFromNow();
+            onTime.basis = new Time(userData.contemporary.basis[0], userData.contemporary.basis[1]);
+            userData.result.setStartTime(today, allocateData[onSection][2], onTime);
             setContentsID(3);
         }
     }, [allocateData])
@@ -131,40 +150,9 @@ export default function Main(props: Props) {
     useEffect(() => {
         if (contentsID === 2) {
             const timeAllocater: TimeAllocater = new TimeAllocater(startTime, endTime, breakTime, tasks, userData.config.timeStep);
-            const allocateResult: Array< [Time, Time, number] > = timeAllocater.allocate(false);
-            // 日付けデータの付与
-            let onDate = new Date();
-            const createdData: Array<[[number, number, number, number, number], [number, number, number, number, number], number]> = [];
-            allocateResult.forEach(elem => {
-                // 日付の検出
-                let dateDifference = 0;
-                if (elem[1].getValueAsMin() - elem[0].getValueAsMin() < 0) {
-                    dateDifference = 1;
-                }
-                // データ生成
-                const newData: [[number, number, number, number, number], [number, number, number, number, number], number] = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], 0];
-                newData[0] = [onDate.getFullYear(), onDate.getMonth()+1, onDate.getDate(), elem[0].hours, elem[0].minutes];
-                onDate.setDate( onDate.getDate() + dateDifference );
-                newData[1] = [onDate.getFullYear(), onDate.getMonth()+1, onDate.getDate(), elem[1].hours, elem[1].minutes];
-                if (elem[2] !== -1) {
-                    newData[2] = elem[2];
-                } else {
-                    newData[2] = -1;
-                }
-                // 格納
-                createdData.push(newData);
-            })
+            const allocateResult: Array<Array<[[number, number, number, number, number], [number, number, number, number, number], number]>> = timeAllocater.allocate(userData.config.schedulingByOrder);
             // allocateDataへの格納
-            setAllocateData(createdData);
-            // Contemporaryへの提出
-            createdData.forEach((section, index) => {
-                userData.contemporary.add(section, index);
-            })
-            const basis: Time = new Time();
-            basis.setFromNow();
-            userData.contemporary.onSection = 0;
-            userData.contemporary.basis     = [basis.hours, basis.minutes];
-            userData.contemporary.upload();
+            setallocateDataCanditate(allocateResult);
         }
     }, [contentsID])
     /////////////////////////////////////////////////////////////////////
@@ -233,6 +221,20 @@ export default function Main(props: Props) {
                     startTime     = { startTime     }
                     endTime       = { endTime       }
                     breakTime     = { breakTime     }
+                />
+            </CSSTransition>
+
+
+
+            {/* selectAllocate */}
+            <CSSTransition
+                in      = { contentsID === 2 }
+                timeout = {600}
+                unmountOnExit
+            >
+                <AllocateCanditateList
+                    descideAllocate = {descideAllocate}
+                    canditateList   = {allocateDataCanditate}
                 />
             </CSSTransition>
 

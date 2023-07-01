@@ -13,11 +13,7 @@ export default class UserData {
     config: Config;
     tasks: Tasks;
     contemporary: Contemporary;
-    result: {
-        [id: string]: {
-            [duration: string]: number;
-        }
-    }
+    result: Result;
 
     constructor(debugMode: boolean) {
         if (debugMode) {
@@ -41,14 +37,14 @@ export default class UserData {
             })
 
             this.contemporary = new Contemporary();
-            this.result = {};
+            this.result = new Result();
         } else {
             this.isSet        = false;
             this.user         = undefined;
             this.config       = new Config();
             this.tasks        = new Tasks(this.uploadTask, this.deleteTask);
             this.contemporary = new Contemporary();
-            this.result       = {};
+            this.result       = new Result(this.uploadResults);
         }
     }
 
@@ -143,6 +139,16 @@ export default class UserData {
         }
         this.contemporary.uploadFunc = (contemporary: Contemporary) => this.uploadContemporary(contemporary, this.config.uid);
         // リザルトデータの取得
+        this.result.uid = user.uid;
+        for (let i=this.config.idRange[0]; i<=this.config.idRange[1]; i++) {
+            docRef = doc(db, "Results", user.uid + "_" + i);
+            await getDoc(docRef).then(result => {
+                let docData = result.data();
+                if (docData) {
+                    this.result.add(docData);
+                }
+            });
+        }
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -163,10 +169,10 @@ export default class UserData {
         setDoc(docRef, contemporary.getDataAsObject());
         return true;
     }
-    uploadResult(result: Result, uid: string): boolean {
+    uploadResults(result: Result): boolean {
         const data: Array< {[key: string]: [number, number] | number | string} > = result.getDataAsObjects();
         data.forEach(elem => {
-            const docRef = doc(db, "Result", `${uid}_${elem["id"]}`);
+            const docRef = doc(db, "Results", `${result.uid}_${elem["id"]}`);
             setDoc(docRef, elem);
         })
         return true;

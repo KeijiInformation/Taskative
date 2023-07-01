@@ -95,6 +95,16 @@ export default function MainRunning(props: Props) {
             }
             return on;
         }, 1000)
+        // resultの中断セーブ
+        setInterval(() => {
+            // startが設定されていれば保存を実行
+            if (userData.result.startTime) {
+                userData.result.setEndTime(onTime.copy());
+                userData.result.updateData(endTime.differFrom(startTime).getValueAsMin());
+                const today: Date = new Date();
+                userData.result.setStartTime(today, onTask.id, onTime.copy());
+            }
+        }, 5*60*1000);
     }, [])
     //////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////
@@ -188,10 +198,17 @@ export default function MainRunning(props: Props) {
     //////////////////////////////////////////////////////////////////
     function moveSection(): undefined {
         props.setonSection(prevState => {
+            // resultの値更新
+            userData.result.setEndTime(onTime.copy());
+            userData.result.updateData(endTime.differFrom(startTime).getValueAsMin());
+            // 次のセクションIndexとTaskへの切り替え
             let newIndex: number = prevState + 1;
             if (newIndex < props.allocateData.length) {
                 setonTask(() => {
                     const newTask: Task = userData.tasks.getTaskByID(props.allocateData[newIndex][2]) as Task;
+                    // resultの開始時間を設定
+                    const today: Date = new Date();
+                    userData.result.setStartTime(today, newTask.id, onTime);
                     return newTask;
                 })
                 setnextTask(() => {

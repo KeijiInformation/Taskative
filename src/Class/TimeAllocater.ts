@@ -66,15 +66,32 @@ class AllocateTasks extends Tasks {
         this.data = newData;
     }
     // 現在のtimeRangeのデータから実際に使用するデータの形を作成する関数
-    createSectionsData(): Array<[Time, Time, number]> {
-        const result: Array<[Time, Time, number]> = [];
+    createSectionsData(): Array<[[number, number, number, number, number], [number, number, number, number, number], number]> {
+        const result: Array<[[number, number, number, number, number], [number, number, number, number, number], number]> = [];
+        const sampleArr: Array<[Time, Time, number]> = [];
         this.data.forEach(task => {
             task.timeRange.forEach(section => {
-                result.push([section[0], section[1], task.id]);
+                sampleArr.push([section[0], section[1], task.id]);
             })
         })
-        result.sort((a, b) => {
+        sampleArr.sort((a, b) => {
             return a[0].compareTo(b[0]);
+        })
+        sampleArr.forEach(section => {
+            // 日付の検出
+            let dateDifference = 0;
+            if (section[1].getValueAsMin() - section[0].getValueAsMin() < 0) {
+                dateDifference = 1;
+            }
+            // データ生成
+            const today = new Date();
+            const newData: [[number, number, number, number, number], [number, number, number, number, number], number] = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], 0];
+            newData[0] = [today.getFullYear(), today.getMonth()+1, today.getDate(), section[0].hours, section[0].minutes];
+            today.setDate( today.getDate() + dateDifference );
+            newData[1] = [today.getFullYear(), today.getMonth()+1, today.getDate(), section[1].hours, section[1].minutes];
+            newData[2] = section[2];
+            // 格納
+            result.push(newData);
         })
         return result;
     }
@@ -489,11 +506,31 @@ export default class TimeAllocater {
         })
         return result;
     }
+    // 理想からの距離が小さいもの4つを保存して更新する
+    saveIdealAllocates(allocateTasksList: AllocateTasks[], newData: AllocateTasks): AllocateTasks[] {
+        if (allocateTasksList.length < 4) {
+            allocateTasksList.push(newData);
+            return allocateTasksList;
+        }
+        let max: number = this.calcDifferenceFromIdeal(allocateTasksList[0]);
+        let target: number = 0;
+        allocateTasksList.forEach((allocateTasks, index) => {
+            const diff: number = this.calcDifferenceFromIdeal(allocateTasks);
+            if (diff > max) {
+                target = index;
+                max = diff;
+            }
+        })
+        if (max > this.calcDifferenceFromIdeal(newData)) {
+            allocateTasksList.splice(target, 1, newData);
+        }
+        return allocateTasksList;
+    }
 
 
 
     // 実際に割り当てを実行する関数
-    allocate(schedulingByOrder: boolean): Array<[Time, Time, number]> {
+    allocate(schedulingByOrder: boolean): Array<Array<[[number, number, number, number, number], [number, number, number, number, number], number]>> {
         // 分単位の分配
         this.descideMinDistribution();
         // 最大パターン数の計算
@@ -511,23 +548,29 @@ export default class TimeAllocater {
             patterns = this.getOrderPattern(100);
         }
         // パターンの検証
-        let idealPatternDiff:  number;
-        let idealTasksPattern: AllocateTasks = new AllocateTasks();
+        // let idealPatternDiff:  number;
+        // let idealTasksPattern: AllocateTasks = new AllocateTasks();
+        let allocateTasksCanditate: AllocateTasks[] = [];
         patterns.forEach((pattern, index) => {
             const allocateTasks: AllocateTasks = this.descideTimeAllocationByPattern(pattern);
-            if (index === 0) {
-                idealPatternDiff  = this.calcDifferenceFromIdeal(allocateTasks);
-                idealTasksPattern = allocateTasks;
-            } else {
-                const onDiff: number = this.calcDifferenceFromIdeal(allocateTasks);
-                if (onDiff < idealPatternDiff) {
-                    idealPatternDiff  = onDiff;
-                    idealTasksPattern = allocateTasks;
-                }
-            }
+            allocateTasksCanditate = this.saveIdealAllocates(allocateTasksCanditate, allocateTasks);
+            // if (index === 0) {
+            //     idealPatternDiff  = this.calcDifferenceFromIdeal(allocateTasks);
+            //     idealTasksPattern = allocateTasks;
+            // } else {
+            //     const onDiff: number = this.calcDifferenceFromIdeal(allocateTasks);
+            //     if (onDiff < idealPatternDiff) {
+            //         idealPatternDiff  = onDiff;
+            //         idealTasksPattern = allocateTasks;
+            //     }
+            // }
         })
         // 決定されたパターンから結果配列を作成
-        return idealTasksPattern.createSectionsData();
+        const result: Array<Array<[[number, number, number, number, number], [number, number, number, number, number], number]>> = [];
+        allocateTasksCanditate.forEach(allocateTasks => {
+            result.push(allocateTasks.createSectionsData());
+        })
+        return result;
     }
     //////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
