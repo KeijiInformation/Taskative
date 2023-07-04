@@ -10,6 +10,7 @@ import { UserData } from "./Class";
 import "./styles/Components/reset.scss";
 import "./styles/Components/App.scss";
 import { onAuthStateChanged } from "firebase/auth";
+import Loading from "./Components/loading/Loading";
 
 
 
@@ -40,7 +41,7 @@ function App() {
   //////////////////////////////////////////////////////////////////
   // page state
   //////////////////////////////////////////////////////////////////
-  const [pageState, setPageState] = useState<"main" | "result" | "settings" | "login">("login");
+  const [pageState, setPageState] = useState<"main" | "result" | "settings" | "login" | "loading">("login");
   onAuthStateChanged(auth, async(user) => {
     if (user) {
       if (!userData.user) {
@@ -70,7 +71,7 @@ function App() {
   //////////////////////////////////////////////////////////////////
   // [ページ名, コンポーネント識別用ID]で指定することによりleft-sideに任意のコンポーネントをレンダリングする.
   // コンポーネント識別用IDは-1だと何も表示しない.
-  const [leftSideRender, setLeftSideRender] = useState<["main" | "result" | "settings" | "login", number, JSX.Element]>([pageState, -1, <></>]);
+  const [leftSideRender, setLeftSideRender] = useState<["main" | "result" | "settings" | "login" | "loading", number, JSX.Element]>([pageState, -1, <></>]);
   //////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////
@@ -93,6 +94,21 @@ function App() {
             />
           </div>
         }
+
+
+
+
+
+
+        {pageState === "loading" &&
+          <div className="loading-content">
+            <Loading/>
+          </div>
+        }
+
+
+
+
 
 
         {/* left side */}

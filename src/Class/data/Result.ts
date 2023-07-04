@@ -1,8 +1,6 @@
 // データ構造
-
 import Time from "../Time";
 
-// 日付をキー、各タスクの時間をvalueとする辞書型構造
 export default class Result {
     data: {[key: string]: Array< [number, number, number] >};
     uploadFunc: ((result: Result) => boolean) | undefined;
@@ -42,7 +40,7 @@ export default class Result {
     ///////////////////////////////////////////////////////////////////////////////
     // get
     ///////////////////////////////////////////////////////////////////////////////
-    // 戻り値は[年月, [データ配列]]となっている
+    // 戻り値は[年, [データ配列]]となっている
     getYearData(year: number): [string, Array<[number, number, number]>] {
         const targetStr: string = `${year}`;
         if (targetStr in this.data) {
@@ -55,6 +53,9 @@ export default class Result {
             return [`${year}`, []];
         }
     }
+
+
+
     // 戻り値は[年月, [データ配列]]となっている
     getMonthData(year: number, month: number): [string, Array<[number, number, number]>] {
         const targetStr: string = `${year}/${month}`;
@@ -68,6 +69,8 @@ export default class Result {
             return [`${year}/${month}`, []];
         }
     }
+
+
 
     // 戻り値は[[週の開始日, 週の最終日], [データ配列]]となっている
     getWeekData(year: number, month: number, day: number): [[string, string], Array<[number, number, number]>] {
@@ -91,6 +94,33 @@ export default class Result {
         } else {
             return [[weekStartStr, weekEndStr], []];
         }
+    }
+
+
+
+    // ページ生成に使うデータ形式に変化する関数
+    // 戻り値: [年月日もしくは週を表す文字列, taskIDの配列, 理想的な時間の配列, 実際に稼働した時間の配列]
+    createDataForPage(dateArr: number[]): [number[], number[], number[]] {
+        let getResult: [[string, string], Array<[number, number, number]>] | [string, Array<[number, number, number]>];
+        const idsArr: number[] = [];
+        const idealMinutesArr: number[] = [];
+        const actualMinutesArr: number[] = [];
+        // 週単位
+        if (dateArr.length === 3) {
+            getResult = this.getYearData(dateArr[0]);
+        // 月単位
+        } else if (dateArr.length === 2) {
+            getResult = this.getMonthData(dateArr[0], dateArr[1]);
+        // 週単位
+        } else {
+            getResult = this.getWeekData(dateArr[0], dateArr[1], dateArr[2]);
+        }
+        getResult[1].forEach(data => {
+            idsArr.push(data[0]);
+            idealMinutesArr.push(data[1]);
+            actualMinutesArr.push(data[2]);
+        })
+        return [idsArr, idealMinutesArr, actualMinutesArr];
     }
     ///////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////
