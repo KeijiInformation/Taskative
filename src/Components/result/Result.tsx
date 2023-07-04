@@ -1,6 +1,7 @@
 import { useContext, useState, useEffect } from "react";
 import { UserDataContext } from "../../App";
 import { CircleGraph, TimeGraph } from "./Components";
+import "../../styles/Components/result/Result.scss";
 
 
 export default function Result() {
@@ -73,6 +74,7 @@ export default function Result() {
         setidsArr(resultData[0]);
         setidealMinutesArr(resultData[1]);
         setactualMinutesArr(resultData[2]);
+        setselectedTab(moveTarget);
         return true;
     }
     //////////////////////////////////////////////////////////////////////////
@@ -105,9 +107,9 @@ export default function Result() {
     return (
         <div className="result-page-wrapper">
             <ul className="result-page-wrapper__tab-select-btn-list">
-                <li className="result-page-wrapper__tab-select-btn-list--tab year"><button onClick={() => changeTab("year")}>年間</button></li>
-                <li className="result-page-wrapper__tab-select-btn-list--tab month"><button onClick={() => changeTab("month")}>月間</button></li>
-                <li className="result-page-wrapper__tab-select-btn-list--tab week"><button onClick={() => changeTab("week")}>週間</button></li>
+                <li className={`result-page-wrapper__tab-select-btn-list--tab year ${selectedTab === "year" ? "selected" : ""}`}><button onClick={() => changeTab("year")}>年間</button></li>
+                <li className={`result-page-wrapper__tab-select-btn-list--tab month ${selectedTab === "month" ? "selected" : ""}`}><button onClick={() => changeTab("month")}>月間</button></li>
+                <li className={`result-page-wrapper__tab-select-btn-list--tab week ${selectedTab === "week" ? "selected" : ""}`}><button onClick={() => changeTab("week")}>週間</button></li>
             </ul>
             <div className="result-page-wrapper__contents">
                 <TimeGraph

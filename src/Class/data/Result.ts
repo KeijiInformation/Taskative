@@ -101,12 +101,12 @@ export default class Result {
     // ページ生成に使うデータ形式に変化する関数
     // 戻り値: [年月日もしくは週を表す文字列, taskIDの配列, 理想的な時間の配列, 実際に稼働した時間の配列]
     createDataForPage(dateArr: number[]): [number[], number[], number[]] {
-        let getResult: [[string, string], Array<[number, number, number]>] | [string, Array<[number, number, number]>];
+        let getResult: [[string, string] | string, Array<[number, number, number]>];
         const idsArr: number[] = [];
         const idealMinutesArr: number[] = [];
         const actualMinutesArr: number[] = [];
-        // 週単位
-        if (dateArr.length === 3) {
+        // 年単位
+        if (dateArr.length === 1) {
             getResult = this.getYearData(dateArr[0]);
         // 月単位
         } else if (dateArr.length === 2) {

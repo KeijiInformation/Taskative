@@ -1,4 +1,53 @@
 @charset "utf-8";
+@use "../../Variables/Color.scss";
+@use "../../Functions/Size.scss";
 
 
 
+.time-graph-wrapper {
+    &__tasks-list {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        gap: 12px;
+        &--task {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+
+
+            .gauge {
+                width: 300px;
+                &__box {
+                    padding: 4px;
+                    position: relative;
+                    width: 100%;
+                    border: 1px solid Color.$font-white;
+                    border-radius: 5px;
+                    &--value {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 0;
+                        height: 100%;
+                        background-color: Color.$bg-green;
+                        opacity: .5;
+                        transition: all .5s ease-in-out;
+                    }
+                    &--title {
+                        font-size: Size.fontSize(13);
+                        text-shadow: 0px 0px 5px rgb(255,255,255);
+                        margin-left: 5px;
+                    }
+                }
+            }
+
+
+
+            .time {
+                width: 100px;
+            }
+        }
+    }
+}

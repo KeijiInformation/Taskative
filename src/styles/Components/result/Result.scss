@@ -1,0 +1,33 @@
+@charset "utf-8";
+@use "../../Variables/Color.scss";
+
+
+
+.result-page-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+    &__tab-select-btn-list {
+        margin-left: 80px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        &--tab {
+            padding: 4px 24px;
+            background-color: Color.$bg-blue;
+            box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+            text-align: center;
+            transition: all .1s ease-in-out;
+            &:hover {
+                cursor: pointer;
+                transform: translateY(-1px);
+                background-color: rgba(Color.$bg-blue, .8);
+            }
+            &.selected {
+                transform: translateY(1px);
+                background-color: rgba(Color.$bg-blue, .8);
+            }
+        }
+    }
+}

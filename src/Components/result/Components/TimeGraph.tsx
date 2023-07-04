@@ -35,14 +35,19 @@ export default function TimeGraph(props: Props) {
                 maxVal = min;
             }
         })
-        let aimVal = 60 * 10;
+        let aimVal = 60;
         while (aimVal < maxVal) {
             aimVal *= 10;
         }
         // 描画
         props.idsArr.forEach((id, index) => {
+            // 目標値の設定
+            // let aimVal = props.idealMinutesArr[index];
+            // while (aimVal <= props.actualMinutesArr[index]) {
+            //     aimVal += props.idealMinutesArr[index];
+            // }
             const gaugeValue: HTMLSpanElement = document.querySelector(`.time-graph-wrapper__tasks-list--task.task-id${id} .gauge__box--value`) as HTMLSpanElement;
-            gaugeValue.style.width = (props.actualMinutesArr[index] / aimVal) + "%";
+            gaugeValue.style.width = (100 * props.actualMinutesArr[index] / aimVal) + "%";
         })
     }, [props.actualMinutesArr, props.idealMinutesArr, props.idsArr])
     //////////////////////////////////////////////////////////////////////////////////////
@@ -67,12 +72,12 @@ export default function TimeGraph(props: Props) {
                             <li className={`time-graph-wrapper__tasks-list--task task-id${task.id}`} key={"time-graph-wrapper__tasks-list--task#" + index}>
                                 <div className="gauge">
                                     <div className="gauge__box">
-                                        <span className="gauge__box--value"></span>
                                         <span className="gauge__box--title">{task.title}</span>
+                                        <span className="gauge__box--value"></span>
                                     </div>
                                 </div>
                                 <div className="time">
-                                    <span className="time__value">{props.actualMinutesArr}</span>
+                                    <span className="time__value">{props.actualMinutesArr[index]}</span>
                                     <span className="time__unit">分</span>
                                 </div>
                             </li>
