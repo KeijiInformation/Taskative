@@ -48,6 +48,9 @@
                 border-bottom: 1px solid Color.$font-white;
                 content: "";
             }
+            &:last-child::after {
+                border-bottom: none;
+            }
 
             .change-order-btns-box {
                 display: flex;

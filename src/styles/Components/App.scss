@@ -45,7 +45,7 @@ body {
 
 #root {
     display: flex;
-    align-items: center;
+    // align-items: center;
     justify-content: center;
     position: relative;
     width: 100%;
@@ -112,6 +112,18 @@ body {
 ///////////////////////////////////////////////////////////////////////
 // content
 ///////////////////////////////////////////////////////////////////////
+.login-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .content-wrapper {
     padding: 16px;
 

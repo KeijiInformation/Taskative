@@ -8,8 +8,9 @@
     display: flex;
     flex-direction: column;
     gap: 64px;
+    align-items: center;
     &__tab-select-btn-list {
-        margin-left: 80px;
+        // margin-left: 80px;
         display: flex;
         align-items: center;
         gap: 12px;
@@ -27,7 +28,12 @@
             &.selected {
                 transform: translateY(1px);
                 background-color: rgba(Color.$bg-blue, .8);
+                box-shadow: none;
             }
         }
+    }
+
+    &__contents {
+
     }
 }

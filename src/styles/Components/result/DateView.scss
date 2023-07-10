@@ -1,0 +1,58 @@
+@charset "utf-8";
+@use "../../Functions/Size.scss";
+@use "../../Variables/Color.scss";
+
+
+
+.date-view-wrapper {
+    &__date-box {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        // 年
+        &--year {
+            font-size: Size.fontSize(24);
+        }
+
+
+
+
+
+
+        // 月
+        &--month {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            .year {
+                font-size: Size.fontSize(10);
+            }
+            .month {
+                font-size: Size.fontSize(24);
+            }
+        }
+
+
+
+
+
+
+        // 週
+        &--date {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            .year {
+                font-size: Size.fontSize(10);
+            }
+            .date {
+                font-size: Size.fontSize(24);
+            }
+        }
+        &--delimiter {
+            font-weight: bold;
+            font-size: Size.fontSize(20);
+        }
+    }
+}

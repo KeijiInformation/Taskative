@@ -217,7 +217,7 @@ export default function Main(props: Props) {
                     setStartTime  = { setStartTime  }
                     setEndTime    = { setEndTime    }
                     setBreakTime  = { setBreakTime  }
-                    setonSection  = { setonSection }
+                    setonSection  = { setonSection  }
                     startTime     = { startTime     }
                     endTime       = { endTime       }
                     breakTime     = { breakTime     }

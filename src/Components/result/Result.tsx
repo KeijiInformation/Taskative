@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from "react";
 import { UserDataContext } from "../../App";
-import { CircleGraph, TimeGraph } from "./Components";
+import { CircleGraph, TimeGraph, DateView, DateInput } from "./Components";
 import "../../styles/Components/result/Result.scss";
 
 
@@ -106,11 +106,49 @@ export default function Result() {
     //////////////////////////////////////////////////////////////////////////
     return (
         <div className="result-page-wrapper">
+
+
+
+
+
+
+            {/* 選択タブ */}
             <ul className="result-page-wrapper__tab-select-btn-list">
                 <li className={`result-page-wrapper__tab-select-btn-list--tab year ${selectedTab === "year" ? "selected" : ""}`}><button onClick={() => changeTab("year")}>年間</button></li>
                 <li className={`result-page-wrapper__tab-select-btn-list--tab month ${selectedTab === "month" ? "selected" : ""}`}><button onClick={() => changeTab("month")}>月間</button></li>
                 <li className={`result-page-wrapper__tab-select-btn-list--tab week ${selectedTab === "week" ? "selected" : ""}`}><button onClick={() => changeTab("week")}>週間</button></li>
             </ul>
+
+
+
+
+
+
+            {/* 日付の表示 */}
+            <div className="result-page-wrapper__date-box">
+                <DateView
+                    onYear      = {onYear}
+                    onMonth     = {onMonth}
+                    onWeek      = {onWeek}
+                    selectedTab = {selectedTab}
+                />
+                <DateInput
+                    setonYear      = {setonYear}
+                    setonMonth     = {setonMonth}
+                    setonWeek      = {setonWeek}
+                    onYear      = {onYear}
+                    onMonth     = {onMonth}
+                    onWeek      = {onWeek}
+                    selectedTab = {selectedTab}
+                />
+            </div>
+
+
+
+
+
+
+            {/* グラフの表示 */}
             <div className="result-page-wrapper__contents">
                 <TimeGraph
                     idsArr           = {idsArr}
@@ -123,6 +161,12 @@ export default function Result() {
                     actualMinutesArr = {actualMinutesArr}
                 /> */}
             </div>
+
+
+
+
+
+
         </div>
     )
     //////////////////////////////////////////////////////////////////////////

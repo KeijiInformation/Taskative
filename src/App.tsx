@@ -47,10 +47,11 @@ function App() {
       if (!userData.user) {
         // デバッグがfalseの時にはデータをInit
         if (!debugMode) {
+          setPageState("loading");
           const newData: UserData = new UserData(debugMode);
           await newData.setInitData(user);
           setuserData(newData);
-          setPageState("main");
+          setTimeout(() => setPageState("main"), 1000);
         }
       }
     } else {
@@ -112,7 +113,7 @@ function App() {
 
 
         {/* left side */}
-        {pageState !== "login" &&
+        {(pageState !== "login" && pageState !== "loading") &&
           <div className="left-side-wrapper">
               {leftSideRender[1] !== -1 &&
                 <>
@@ -128,7 +129,7 @@ function App() {
 
 
         {/* content */}
-        {pageState !== "login" &&
+        {(pageState !== "login" && pageState !== "loading") &&
           <div className="content-wrapper">
 
             <CSSTransition
@@ -166,7 +167,7 @@ function App() {
 
 
         {/* right side */}
-        {pageState !== "login" &&
+        {(pageState !== "login" && pageState !== "loading") &&
           <div className="right-side-wrapper">
             <div className="right-side-wrapper__button-list">
               <ButtonList
@@ -182,7 +183,7 @@ function App() {
 
 
         {/* bottom */}
-        {pageState !== "login" &&
+        {(pageState !== "login" && pageState !== "loading") &&
           <div className="bottom-side-wrapper">
             <div className="right-side-wrapper__button-list">
               <ButtonList

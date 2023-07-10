@@ -9,7 +9,7 @@ export default function Loading() {
     return (
         <div className="loading-page-wrapper">
             <div className="loading-page-wrapper__message-box">
-                <p className="loading-page-wrapper__message-box--message">初期設定しています。しばらくお待ちください。</p>
+                <p className="loading-page-wrapper__message-box--message">データを取得しています。しばらくお待ちください。</p>
             </div>
             <div className="loading-page-wrapper__animation-box">
                 

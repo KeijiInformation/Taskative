@@ -80,7 +80,9 @@ export default class Result {
         const weekStart: Date = new Date();
         weekStart.setDate( onDate.getDate() - onDate.getDay() + 1 );
         const weekEnd:   Date = new Date();
-        weekEnd.setDate( onDate.getDate() + (7 - onDate.getDay()) );
+        if (weekEnd.getDay() !== 0) {
+            weekEnd.setDate( onDate.getDate() + (7 - onDate.getDay()) );
+        }
         const weekStartStr: string = `${weekStart.getFullYear()}/${weekStart.getMonth()+1}/${weekStart.getDate()}`;
         const weekEndStr:   string = `${weekEnd.getFullYear()}/${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
         // その週のデータを取得
@@ -208,7 +210,9 @@ export default class Result {
             // 対象となるキーの作成(週、月、年)
             const weekEdge: [Date, Date] = [new Date(), new Date()];
             weekEdge[0].setDate(this.onDate.getDate() - this.onDate.getDay() + 1);
-            weekEdge[1].setDate(this.onDate.getDate() + (7 - this.onDate.getDay()));
+            if (weekEdge[1].getDay() !== 0) {
+                weekEdge[1].setDate(this.onDate.getDate() + (7 - this.onDate.getDay()));
+            }
             const targetWeek: string = `${weekEdge[0].getFullYear()}/${weekEdge[0].getMonth()+1}/${weekEdge[0].getDate()}-${weekEdge[1].getFullYear()}/${weekEdge[1].getMonth()+1}/${weekEdge[1].getDate()}`
             const targetMonth: string = `${this.onDate.getFullYear()}/${this.onDate.getMonth()+1}`;
             const targetYear: string = `${this.onDate.getFullYear()}`;
