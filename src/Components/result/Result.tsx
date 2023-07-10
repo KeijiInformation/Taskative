@@ -155,11 +155,11 @@ export default function Result() {
                     idealMinutesArr  = {idealMinutesArr}
                     actualMinutesArr = {actualMinutesArr}
                 />
-                {/* <CircleGraph
+                <CircleGraph
                     idsArr           = {idsArr}
                     idealMinutesArr  = {idealMinutesArr}
                     actualMinutesArr = {actualMinutesArr}
-                /> */}
+                />
             </div>
 
 

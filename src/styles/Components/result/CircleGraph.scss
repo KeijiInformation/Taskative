@@ -1,0 +1,39 @@
+@charset "utf-8";
+@use "../../Variables/Color.scss";
+@use "../../Functions/Size.scss";
+
+
+
+.circle-graph-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+
+    &__chart {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 2px solid Color.$font-white;
+    }
+
+    &__color-list {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        gap: 4px;
+        &--color {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            .color-view {
+                width: 15px;
+                height: 15px;
+                border: 1px solid Color.$font-white;
+                border-radius: 3px;
+            }
+            .title {
+                font-size: Size.fontSize(13);
+            }
+        }
+    }
+}
