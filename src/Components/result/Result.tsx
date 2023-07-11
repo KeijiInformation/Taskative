@@ -126,16 +126,16 @@ export default function Result() {
 
             {/* 日付の表示 */}
             <div className="result-page-wrapper__date-box">
-                <DateView
+                <DateInput
+                    setonYear      = {setonYear}
+                    setonMonth     = {setonMonth}
+                    setonWeek      = {setonWeek}
                     onYear      = {onYear}
                     onMonth     = {onMonth}
                     onWeek      = {onWeek}
                     selectedTab = {selectedTab}
                 />
-                <DateInput
-                    setonYear      = {setonYear}
-                    setonMonth     = {setonMonth}
-                    setonWeek      = {setonWeek}
+                <DateView
                     onYear      = {onYear}
                     onMonth     = {onMonth}
                     onWeek      = {onWeek}
@@ -149,18 +149,23 @@ export default function Result() {
 
 
             {/* グラフの表示 */}
-            <div className="result-page-wrapper__contents">
-                <TimeGraph
-                    idsArr           = {idsArr}
-                    idealMinutesArr  = {idealMinutesArr}
-                    actualMinutesArr = {actualMinutesArr}
-                />
-                <CircleGraph
-                    idsArr           = {idsArr}
-                    idealMinutesArr  = {idealMinutesArr}
-                    actualMinutesArr = {actualMinutesArr}
-                />
-            </div>
+            {idsArr.length === 0
+            ?
+                <p className="result-page-wrapper__no-data-message">データが登録されていません。</p>
+            :
+                <div className="result-page-wrapper__contents">
+                    <TimeGraph
+                        idsArr           = {idsArr}
+                        idealMinutesArr  = {idealMinutesArr}
+                        actualMinutesArr = {actualMinutesArr}
+                    />
+                    <CircleGraph
+                        idsArr           = {idsArr}
+                        idealMinutesArr  = {idealMinutesArr}
+                        actualMinutesArr = {actualMinutesArr}
+                    />
+                </div>
+            }
 
 
 

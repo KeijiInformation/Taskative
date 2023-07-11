@@ -33,6 +33,13 @@
         }
     }
 
+    &__date-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
     &__contents {
         display: flex;
         flex-direction: column;

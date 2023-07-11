@@ -1,0 +1,11 @@
+@charset "utf-8";
+@use "../../Variables/Color.scss";
+
+
+
+.date-input-wrapper {
+    input, select {
+        color: Color.$font-black;
+        padding: 8px;
+    }
+}
