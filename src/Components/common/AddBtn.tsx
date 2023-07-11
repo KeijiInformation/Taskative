@@ -21,7 +21,7 @@ export default function AddBtn(props: Props) {
                             <IconBtn
                                 border   = {true}
                                 callback = {props.callback}
-                                iconName = "add"
+                                iconImage = "add"
                             />
                         </div>
                     </label>
@@ -30,7 +30,7 @@ export default function AddBtn(props: Props) {
                         <IconBtn
                             border   = {true}
                             callback = {props.callback}
-                            iconName = "add"
+                            iconImage = "add"
                         />
                     </div>
             }

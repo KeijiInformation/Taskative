@@ -12,7 +12,7 @@ export default function DeleteBtn(props: Props) {
     return (
         <div className="delete-btn-wrapper">
             <IconBtn
-                iconName = "remove"
+                iconImage = "remove"
                 callback = {props.callback}
                 border   = {true}
             />

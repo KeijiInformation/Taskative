@@ -91,7 +91,7 @@ export default function TaskPop(props: Props) {
                         <p className="task-pop-wrapper__title-box--title">タスクの編集</p>
                         <div className="task-pop-wrapper__title-box--delete-btn-box">
                             <IconBtn
-                                iconName = "delete"
+                                iconImage = "delete"
                                 border   = {false}
                                 callback = {() => {props.tasks.delete(props.task.id); props.setisPop(false)}}
                             />

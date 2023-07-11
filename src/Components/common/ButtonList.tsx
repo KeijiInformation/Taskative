@@ -4,6 +4,10 @@ import MovePageBtn from "./MovePageBtn";
 import { useState } from "react";
 // import styles
 import "../../styles/Components/common/ButtonList.scss";
+// import images
+import mainPageIcon from "./../../images/common/MainPageIcon.svg";
+import resultPageIcon from "./../../images/common/ResultPageIcon.svg";
+import settingPageIcon from "./../../images/common/SettingPageIcon.svg";
 
 
 interface Props {
@@ -74,7 +78,7 @@ export default function ButtonList(props: Props) {
         <ul className="button-list-wrapper">
             <li className="button-list-wrapper__move-page-btn main">
                 <MovePageBtn
-                    icon     = { "schedule" }
+                    icon     = { mainPageIcon }
                     title    = { "main"   }
                     clicked  = {clickedState["main"]}
                     callback = { () => clickedEvent("main") }
@@ -82,7 +86,7 @@ export default function ButtonList(props: Props) {
             </li>
             <li className="button-list-wrapper__move-page-btn result">
                 <MovePageBtn
-                    icon     = { "bar_chart" }
+                    icon     = { resultPageIcon }
                     title    = { "result"   }
                     clicked  = {clickedState["result"]}
                     callback = { () => clickedEvent("result") }
@@ -90,7 +94,7 @@ export default function ButtonList(props: Props) {
             </li>
             <li className="button-list-wrapper__move-page-btn settings">
                 <MovePageBtn
-                    icon     = { "settings" }
+                    icon     = { settingPageIcon }
                     title    = { "settings"   }
                     clicked  = {clickedState["settings"]}
                     callback = { () => clickedEvent("settings") }

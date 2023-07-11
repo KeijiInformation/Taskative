@@ -106,17 +106,17 @@ export default function TasksView(props: Props) {
         <div className="tasks-view-wrapper">
             <div className="tasks-view-wrapper__oparate-btns-box">
                 <IconBtn
-                    iconName = "add"
+                    iconImage = "add"
                     callback = {() => props.settargetTask(new Task("", -1, "", -1, -1, false, [-1, -1, -1], [false, -1, -1, -1], -1, false))}
                     border   = {false}
                 />
                 <IconBtn
-                    iconName = "edit"
+                    iconImage = "edit"
                     callback = {() => setOperation("edit")}
                     border   = {editOperate}
                 />
                 <IconBtn
-                    iconName = "swap_vert"
+                    iconImage = "swap_vert"
                     callback = {() => setOperation("changeOrder")}
                     border   = {changeOrderOperate}
                 />
@@ -135,14 +135,14 @@ export default function TasksView(props: Props) {
                             <div className={`change-order-btns-box ${changeOrderOperate}`}>
                                 <div className="change-order-btns-box__up-btn">
                                     <IconBtn
-                                        iconName = "arrow_drop_up"
+                                        iconImage = "arrow_drop_up"
                                         callback = {() => changeOrder(task.id, "up")}
                                         border   = {false}
                                     />
                                 </div>
                                 <div className="change-order-btns-box__down-btn">
                                     <IconBtn
-                                        iconName = "arrow_drop_down"
+                                        iconImage = "arrow_drop_down"
                                         callback = {() => changeOrder(task.id, "down")}
                                         border   = {false}
                                     />
@@ -171,7 +171,7 @@ export default function TasksView(props: Props) {
                             </div>
                             <div className={`edit-btn-box ${editOperate}`}>
                                 <IconBtn
-                                    iconName = "open_in_new"
+                                    iconImage = "open_in_new"
                                     callback = {() => {props.settargetTask(task)}}
                                     border   = {false}
                                 />

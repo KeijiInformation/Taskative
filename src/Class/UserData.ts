@@ -66,6 +66,7 @@ export default class UserData {
                 "deleted": [false, 0, 0, 0],
                 "idRange": [0, 0],
                 "schedulingByOrder": false,
+                "timeStep": 5,
             }
             await setDoc(docRef, newDoc);
             // Contemporaryの追加
