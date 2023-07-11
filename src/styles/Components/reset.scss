@@ -20,7 +20,7 @@
 
 :where(html) {
     -webkit-text-size-adjust: none;
-    color-scheme: dark light
+    color-scheme: dark light;
 }
 
 @supports not (min-block-size:100dvb) {
@@ -39,8 +39,6 @@
     block-size: 100%;
     block-size: 100dvb;
     line-height: 1.5;
-    font-family: system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased
 }
 
 :where(input, button, textarea, select) {

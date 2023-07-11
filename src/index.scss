@@ -1,0 +1,15 @@
+@charset "utf-8";
+@use "./styles/Variables/fonts.scss";
+
+
+body {
+  margin: 0;
+  font-family: fonts.$noto-sans, sans-serif;
+  // -webkit-font-smoothing: antialiased;
+  // -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
